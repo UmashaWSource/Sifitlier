@@ -1,0 +1,10 @@
+# Python Virtual Environment (The heavy stuff)
+backend/venv/
+backend/__pycache__/
+*.pyc
+
+# Flutter Build Files (The other heavy stuff)
+mobile_app/build/
+.dart_tool/
+.idea/
+.vscode/
