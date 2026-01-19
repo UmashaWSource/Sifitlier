@@ -1,280 +1,486 @@
-import re
-from typing import Dict, List, Tuple
-from dataclasses import dataclass
-from enum import Enum
+"""
+dlp_detector.py
+===============
 
-class SensitivityLevel(Enum):
-    """Defines the severity level of detected sensitive data"""
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
+Data Loss Prevention (DLP) Detector for Sifitlier
+Detects sensitive data in outgoing messages (SMS, Email, Telegram)
+
+Classes:
+    - SensitivityLevel: Enum for sensitivity levels
+    - DLPDetector: Main detector class
+
+Usage:
+    from dlp_detector import DLPDetector, SensitivityLevel
+    
+    detector = DLPDetector()
+    result = detector.analyze("My credit card is 4532015112830366")
+    
+    if result['has_sensitive_data']:
+        print(f"Warning: {result['sensitivity_level']} sensitivity detected!")
+        print(f"Categories: {result['categories']}")
+"""
+
+import re
+from enum import Enum
+from typing import Dict, Any, List, Tuple, Optional
+from dataclasses import dataclass
+
+
+class SensitivityLevel(str, Enum):
+    """Sensitivity levels for detected data"""
+    CRITICAL = "critical"   # Credit cards, SSN, passwords
+    HIGH = "high"           # Bank accounts, medical info
+    MEDIUM = "medium"       # Phone numbers, addresses
+    LOW = "low"             # Emails, names
+    NONE = "none"           # No sensitive data
+
 
 @dataclass
-class DLPDetection:
-    """Represents a single DLP detection result"""
+class SensitiveMatch:
+    """Represents a detected sensitive data match"""
+    category: str
     pattern_name: str
-    matched_text: str  # Partially masked version
+    matched_text: str
+    masked_text: str
     sensitivity: SensitivityLevel
-    position: Tuple[int, int]  # Start and end position in text
-    recommendation: str
+    start_pos: int
+    end_pos: int
+    confidence: float
+
 
 class DLPDetector:
     """
-    Data Loss Prevention Detector
-    Scans text for sensitive information patterns
+    Data Loss Prevention Detector.
+    
+    Analyzes text for sensitive information and provides:
+    - Detection of multiple sensitive data types
+    - Sensitivity level classification
+    - Masked/redacted text output
+    - Recommendations for users
+    
+    Sensitive Data Categories:
+    - Financial: Credit cards, bank accounts, IBAN
+    - Identity: SSN, NRIC, passport numbers
+    - Authentication: Passwords, PINs, API keys
+    - Personal: Phone numbers, email addresses
+    - Medical: Medical record numbers, health info
     """
     
     def __init__(self):
-        # Define regex patterns for various sensitive data types
-        self.patterns = {
-            # Financial Information
-            'credit_card': {
-                'regex': r'\b(?:\d{4}[-\s]?){3}\d{4}\b',
-                'sensitivity': SensitivityLevel.CRITICAL,
-                'description': 'Credit Card Number',
-                'recommendation': 'Never share credit card numbers via SMS, email, or messaging apps.'
-            },
+        self._init_patterns()
+    
+    def _init_patterns(self):
+        """Initialize all detection patterns"""
+        
+        # Pattern format: (regex, description, sensitivity, confidence)
+        self.patterns: Dict[str, List[Tuple[str, str, SensitivityLevel, float]]] = {
             
-            # Sri Lankan National ID (Old: 9 digits + V/X, New: 12 digits)
-            'national_id_lk': {
-                'regex': r'\b\d{9}[VvXx]\b|\b\d{12}\b',
-                'sensitivity': SensitivityLevel.HIGH,
-                'description': 'Sri Lankan National ID',
-                'recommendation': 'Avoid sharing your National ID number unless absolutely necessary.'
-            },
+            # ============== FINANCIAL ==============
+            "credit_card": [
+                # Visa
+                (r'\b4[0-9]{3}[-\s]?[0-9]{4}[-\s]?[0-9]{4}[-\s]?[0-9]{4}\b',
+                 "Visa card", SensitivityLevel.CRITICAL, 0.95),
+                # MasterCard
+                (r'\b5[1-5][0-9]{2}[-\s]?[0-9]{4}[-\s]?[0-9]{4}[-\s]?[0-9]{4}\b',
+                 "MasterCard", SensitivityLevel.CRITICAL, 0.95),
+                # American Express
+                (r'\b3[47][0-9]{2}[-\s]?[0-9]{6}[-\s]?[0-9]{5}\b',
+                 "American Express", SensitivityLevel.CRITICAL, 0.95),
+                # Discover
+                (r'\b6(?:011|5[0-9]{2})[-\s]?[0-9]{4}[-\s]?[0-9]{4}[-\s]?[0-9]{4}\b',
+                 "Discover card", SensitivityLevel.CRITICAL, 0.95),
+                # Generic 16-digit
+                (r'\b[0-9]{4}[-\s]?[0-9]{4}[-\s]?[0-9]{4}[-\s]?[0-9]{4}\b',
+                 "Credit card number", SensitivityLevel.CRITICAL, 0.70),
+            ],
             
-            # International formats
-            'ssn': {
-                'regex': r'\b\d{3}-\d{2}-\d{4}\b',
-                'sensitivity': SensitivityLevel.CRITICAL,
-                'description': 'Social Security Number (US)',
-                'recommendation': 'SSN should never be shared through unsecured channels.'
-            },
+            "bank_account": [
+                # IBAN (International)
+                (r'\b[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}\b',
+                 "IBAN", SensitivityLevel.HIGH, 0.95),
+                # Account with context
+                (r'(?i)(?:account|acct|a/c)[\s:#]*([0-9]{8,17})',
+                 "Bank account number", SensitivityLevel.HIGH, 0.85),
+                # Routing number with context
+                (r'(?i)(?:routing|rtg|aba)[\s:#]*([0-9]{9})',
+                 "Bank routing number", SensitivityLevel.HIGH, 0.90),
+                # SWIFT/BIC code
+                (r'\b[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?\b',
+                 "SWIFT/BIC code", SensitivityLevel.HIGH, 0.80),
+            ],
             
-            # Banking Information
-            'iban': {
-                'regex': r'\b[A-Z]{2}\d{2}[A-Z0-9]{1,30}\b',
-                'sensitivity': SensitivityLevel.HIGH,
-                'description': 'International Bank Account Number (IBAN)',
-                'recommendation': 'Bank account numbers should only be shared through secure banking channels.'
-            },
+            "cvv": [
+                # CVV with context
+                (r'(?i)(?:cvv|cvc|cvv2|cvc2|security\s*code)[\s:]*([0-9]{3,4})',
+                 "Card security code (CVV)", SensitivityLevel.CRITICAL, 0.95),
+            ],
             
-            'bank_account': {
-                'regex': r'\b\d{8,18}\b',
-                'sensitivity': SensitivityLevel.HIGH,
-                'description': 'Possible Bank Account Number',
-                'recommendation': 'Verify you\'re sharing this with a trusted recipient.'
-            },
+            # ============== IDENTITY ==============
+            "ssn": [
+                # US Social Security Number
+                (r'\b[0-9]{3}[-\s][0-9]{2}[-\s][0-9]{4}\b',
+                 "Social Security Number", SensitivityLevel.CRITICAL, 0.95),
+                # SSN with context
+                (r'(?i)(?:ssn|social\s*security)[\s:#]*([0-9]{3}[-\s]?[0-9]{2}[-\s]?[0-9]{4})',
+                 "SSN", SensitivityLevel.CRITICAL, 0.98),
+            ],
             
-            # Personal Identifiable Information
-            'email_bulk': {
-                'regex': r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-                'sensitivity': SensitivityLevel.MEDIUM,
-                'description': 'Email Address',
-                'recommendation': 'Be cautious when sharing email addresses with unknown parties.'
-            },
+            "nric": [
+                # Singapore NRIC/FIN
+                (r'\b[STFGM][0-9]{7}[A-Z]\b',
+                 "Singapore NRIC/FIN", SensitivityLevel.CRITICAL, 0.95),
+                # Malaysia IC
+                (r'\b[0-9]{6}[-\s]?[0-9]{2}[-\s]?[0-9]{4}\b',
+                 "Malaysia IC", SensitivityLevel.CRITICAL, 0.80),
+            ],
             
-            'phone_number': {
-                'regex': r'\b(?:\+94|0)?[0-9]{9,10}\b',
-                'sensitivity': SensitivityLevel.MEDIUM,
-                'description': 'Phone Number',
-                'recommendation': 'Ensure you trust the recipient before sharing phone numbers.'
-            },
+            "passport": [
+                # Generic passport with context
+                (r'(?i)passport[\s:#]*([A-Z]{1,2}[0-9]{6,9})',
+                 "Passport number", SensitivityLevel.HIGH, 0.85),
+            ],
             
-            # Authentication & Security
-            'api_key': {
-                'regex': r'\b[A-Za-z0-9_-]{32,}\b',
-                'sensitivity': SensitivityLevel.CRITICAL,
-                'description': 'Possible API Key or Token',
-                'recommendation': 'API keys should NEVER be shared in messages. Revoke this key immediately if sent.'
-            },
+            "drivers_license": [
+                # With context
+                (r'(?i)(?:driver\'?s?\s*license|dl|license\s*#?)[\s:#]*([A-Z0-9]{5,15})',
+                 "Driver's license", SensitivityLevel.HIGH, 0.80),
+            ],
             
-            'password_keyword': {
-                'regex': r'\b(?:password|passwd|pwd|pass)[\s:=]+[^\s]{4,}\b',
-                'sensitivity': SensitivityLevel.CRITICAL,
-                'description': 'Password Detected',
-                'recommendation': 'NEVER share passwords through any messaging platform!'
-            },
+            # ============== AUTHENTICATION ==============
+            "password": [
+                # Password with context
+                (r'(?i)password[\s:=]+\S+',
+                 "Password", SensitivityLevel.CRITICAL, 0.95),
+                (r'(?i)(?:pwd|passwd)[\s:=]+\S+',
+                 "Password", SensitivityLevel.CRITICAL, 0.90),
+                (r'(?i)pass[\s:=]+\S{6,}',
+                 "Password", SensitivityLevel.CRITICAL, 0.80),
+            ],
             
-            # Medical Information
-            'medical_record': {
-                'regex': r'\b(?:diagnosis|prescription|medical record|patient id)[\s:]+[^\s]+',
-                'sensitivity': SensitivityLevel.HIGH,
-                'description': 'Medical Information',
-                'recommendation': 'Medical information is protected by privacy laws. Use secure healthcare portals.'
-            },
+            "pin": [
+                # PIN with context
+                (r'(?i)(?:pin|pin\s*code|pin\s*number)[\s:=]+[0-9]{4,6}',
+                 "PIN code", SensitivityLevel.CRITICAL, 0.95),
+            ],
             
-            # Confidential Business Data
-            'confidential_keyword': {
-                'regex': r'\b(?:confidential|classified|secret|proprietary|internal only|do not share)\b',
-                'sensitivity': SensitivityLevel.HIGH,
-                'description': 'Confidential Content Marker',
-                'recommendation': 'This message contains confidential markers. Verify recipient authorization.'
-            },
+            "api_key": [
+                # API keys
+                (r'(?i)api[_-]?key[\s:=]+[A-Za-z0-9_\-]{20,}',
+                 "API Key", SensitivityLevel.CRITICAL, 0.95),
+                (r'(?i)secret[_-]?key[\s:=]+[A-Za-z0-9_\-]{20,}',
+                 "Secret Key", SensitivityLevel.CRITICAL, 0.95),
+                (r'(?i)access[_-]?token[\s:=]+[A-Za-z0-9_\-]{20,}',
+                 "Access Token", SensitivityLevel.CRITICAL, 0.95),
+                # Bearer tokens
+                (r'(?i)bearer[\s]+[A-Za-z0-9_\-\.]{20,}',
+                 "Bearer Token", SensitivityLevel.CRITICAL, 0.90),
+                # AWS keys
+                (r'AKIA[0-9A-Z]{16}',
+                 "AWS Access Key", SensitivityLevel.CRITICAL, 0.98),
+            ],
             
-            'salary_info': {
-                'regex': r'\b(?:salary|compensation|pay)[\s:]+(?:Rs\.?|USD|\$|LKR)[\s]?[\d,]+',
-                'sensitivity': SensitivityLevel.MEDIUM,
-                'description': 'Salary/Financial Information',
-                'recommendation': 'Salary information is sensitive. Ensure secure communication channel.'
-            },
+            # ============== PERSONAL ==============
+            "phone": [
+                # International format
+                (r'\+[1-9][0-9]{0,2}[-\s]?[0-9]{8,14}',
+                 "Phone number (international)", SensitivityLevel.MEDIUM, 0.85),
+                # US format
+                (r'\b\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b',
+                 "Phone number (US)", SensitivityLevel.MEDIUM, 0.80),
+                # Generic 10+ digits
+                (r'(?i)(?:phone|mobile|cell|tel)[\s:#]*([0-9\-\s]{10,})',
+                 "Phone number", SensitivityLevel.MEDIUM, 0.85),
+            ],
             
-            # Date of Birth
-            'dob': {
-                'regex': r'\b(?:dob|date of birth|born on)[\s:]+\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b',
-                'sensitivity': SensitivityLevel.MEDIUM,
-                'description': 'Date of Birth',
-                'recommendation': 'Date of birth combined with other info can lead to identity theft.'
-            },
+            "email": [
+                # Standard email
+                (r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+                 "Email address", SensitivityLevel.LOW, 0.95),
+            ],
             
-            # Passport Number
-            'passport': {
-                'regex': r'\b[A-Z]{1,2}\d{6,9}\b',
-                'sensitivity': SensitivityLevel.HIGH,
-                'description': 'Possible Passport Number',
-                'recommendation': 'Passport numbers should be kept secure and shared only when necessary.'
-            }
+            "address": [
+                # Street address with context
+                (r'(?i)(?:address|street|avenue|road|blvd|lane)[\s:#]*[0-9]+\s+[A-Za-z\s]+',
+                 "Physical address", SensitivityLevel.MEDIUM, 0.70),
+            ],
+            
+            "dob": [
+                # Date of birth with context
+                (r'(?i)(?:dob|date\s*of\s*birth|born|birthday)[\s:]+[0-9]{1,2}[/\-][0-9]{1,2}[/\-][0-9]{2,4}',
+                 "Date of birth", SensitivityLevel.MEDIUM, 0.90),
+            ],
+            
+            # ============== MEDICAL ==============
+            "medical": [
+                # Medical record number
+                (r'(?i)(?:mrn|medical\s*record|patient\s*id)[\s:#]*[A-Z0-9]{6,}',
+                 "Medical record number", SensitivityLevel.HIGH, 0.90),
+                # Health information keywords
+                (r'(?i)(?:diagnosis|prescription|medication)[\s:]+[A-Za-z\s]+',
+                 "Health information", SensitivityLevel.HIGH, 0.70),
+            ],
+            
+            # ============== IP/NETWORK ==============
+            "ip_address": [
+                # IPv4
+                (r'\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b',
+                 "IP Address (IPv4)", SensitivityLevel.MEDIUM, 0.90),
+                # IPv6 (simplified)
+                (r'\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b',
+                 "IP Address (IPv6)", SensitivityLevel.MEDIUM, 0.90),
+            ],
+        }
+        
+        # Category to sensitivity mapping for summary
+        self.category_sensitivity = {
+            "credit_card": SensitivityLevel.CRITICAL,
+            "cvv": SensitivityLevel.CRITICAL,
+            "ssn": SensitivityLevel.CRITICAL,
+            "nric": SensitivityLevel.CRITICAL,
+            "password": SensitivityLevel.CRITICAL,
+            "pin": SensitivityLevel.CRITICAL,
+            "api_key": SensitivityLevel.CRITICAL,
+            "bank_account": SensitivityLevel.HIGH,
+            "passport": SensitivityLevel.HIGH,
+            "drivers_license": SensitivityLevel.HIGH,
+            "medical": SensitivityLevel.HIGH,
+            "phone": SensitivityLevel.MEDIUM,
+            "address": SensitivityLevel.MEDIUM,
+            "dob": SensitivityLevel.MEDIUM,
+            "ip_address": SensitivityLevel.MEDIUM,
+            "email": SensitivityLevel.LOW,
         }
     
-    def mask_sensitive_data(self, text: str, start: int, end: int) -> str:
+    def analyze(self, text: str) -> Dict[str, Any]:
         """
-        Masks sensitive data for display
-        Shows first 2 and last 2 characters, masks middle
-        """
-        matched = text[start:end]
-        if len(matched) <= 4:
-            return '*' * len(matched)
-        return matched[:2] + '*' * (len(matched) - 4) + matched[-2:]
-    
-    def scan_text(self, text: str) -> List[DLPDetection]:
-        """
-        Scans text for all sensitive data patterns
-        Returns list of detections
-        """
-        detections = []
+        Analyze text for sensitive data.
         
-        for pattern_name, pattern_config in self.patterns.items():
-            matches = re.finditer(pattern_config['regex'], text, re.IGNORECASE)
+        Args:
+            text: The text to analyze
             
-            for match in matches:
-                # Create masked version for safe display
-                masked_text = self.mask_sensitive_data(text, match.start(), match.end())
-                
-                detection = DLPDetection(
-                    pattern_name=pattern_config['description'],
-                    matched_text=masked_text,
-                    sensitivity=pattern_config['sensitivity'],
-                    position=(match.start(), match.end()),
-                    recommendation=pattern_config['recommendation']
-                )
-                detections.append(detection)
-        
-        return detections
-    
-    def get_risk_score(self, detections: List[DLPDetection]) -> int:
+        Returns:
+            Dictionary containing:
+            - has_sensitive_data: bool
+            - sensitivity_level: str (overall)
+            - total_matches: int
+            - categories: list of category names
+            - matches: list of match details
+            - recommendation: str
         """
-        Calculates overall risk score (0-100) based on detections
-        """
-        if not detections:
-            return 0
+        matches: List[Dict[str, Any]] = []
+        categories_found: set = set()
+        highest_sensitivity = SensitivityLevel.NONE
         
-        sensitivity_scores = {
-            SensitivityLevel.LOW: 10,
-            SensitivityLevel.MEDIUM: 25,
-            SensitivityLevel.HIGH: 50,
-            SensitivityLevel.CRITICAL: 100
-        }
+        for category, patterns in self.patterns.items():
+            for pattern, description, sensitivity, confidence in patterns:
+                for match in re.finditer(pattern, text, re.IGNORECASE):
+                    matched_text = match.group()
+                    
+                    # Additional validation for credit cards
+                    if category == "credit_card" and not self._validate_luhn(matched_text):
+                        confidence *= 0.5
+                        if confidence < 0.5:
+                            continue
+                    
+                    # Create masked version
+                    masked = self._mask_text(matched_text, category)
+                    
+                    matches.append({
+                        "category": category,
+                        "description": description,
+                        "matched_text": matched_text,
+                        "masked_text": masked,
+                        "sensitivity": sensitivity.value,
+                        "confidence": round(confidence, 2),
+                        "position": {
+                            "start": match.start(),
+                            "end": match.end()
+                        }
+                    })
+                    
+                    categories_found.add(category)
+                    
+                    # Track highest sensitivity
+                    if self._sensitivity_rank(sensitivity) > self._sensitivity_rank(highest_sensitivity):
+                        highest_sensitivity = sensitivity
         
-        # Get highest sensitivity score
-        max_score = max([sensitivity_scores[d.sensitivity] for d in detections])
+        # Remove duplicates (same position)
+        matches = self._deduplicate_matches(matches)
         
-        # Add points for multiple detections
-        detection_bonus = min(len(detections) * 5, 20)
-        
-        return min(max_score + detection_bonus, 100)
-    
-    def generate_summary(self, detections: List[DLPDetection]) -> Dict:
-        """
-        Generates a summary report of all detections
-        """
-        if not detections:
-            return {
-                'total_detections': 0,
-                'risk_score': 0,
-                'risk_level': 'SAFE',
-                'message': 'No sensitive data detected.',
-                'detections': []
-            }
-        
-        risk_score = self.get_risk_score(detections)
-        
-        # Determine risk level
-        if risk_score >= 75:
-            risk_level = 'CRITICAL'
-        elif risk_score >= 50:
-            risk_level = 'HIGH'
-        elif risk_score >= 25:
-            risk_level = 'MEDIUM'
-        else:
-            risk_level = 'LOW'
-        
-        detection_list = []
-        for detection in detections:
-            detection_list.append({
-                'type': detection.pattern_name,
-                'masked_value': detection.matched_text,
-                'sensitivity': detection.sensitivity.value,
-                'recommendation': detection.recommendation
-            })
+        # Generate recommendation
+        recommendation = self._generate_recommendation(highest_sensitivity, list(categories_found))
         
         return {
-            'total_detections': len(detections),
-            'risk_score': risk_score,
-            'risk_level': risk_level,
-            'message': f'Warning: {len(detections)} sensitive data pattern(s) detected!',
-            'detections': detection_list
+            "has_sensitive_data": len(matches) > 0,
+            "sensitivity_level": highest_sensitivity.value,
+            "total_matches": len(matches),
+            "categories": list(categories_found),
+            "matches": matches,
+            "recommendation": recommendation
         }
+    
+    def _validate_luhn(self, card_number: str) -> bool:
+        """Validate credit card using Luhn algorithm"""
+        digits = re.sub(r'[-\s]', '', card_number)
+        
+        if not digits.isdigit() or len(digits) < 13:
+            return False
+        
+        total = 0
+        reverse = digits[::-1]
+        
+        for i, digit in enumerate(reverse):
+            n = int(digit)
+            if i % 2 == 1:
+                n *= 2
+                if n > 9:
+                    n -= 9
+            total += n
+        
+        return total % 10 == 0
+    
+    def _mask_text(self, text: str, category: str) -> str:
+        """Create masked version of sensitive data"""
+        
+        clean = re.sub(r'[-\s]', '', text)
+        
+        if category in ["credit_card"]:
+            # Show last 4 digits: ****-****-****-1234
+            return f"****-****-****-{clean[-4:]}"
+        
+        elif category in ["phone"]:
+            # Show last 4: ***-***-1234
+            return f"***-***-{clean[-4:]}"
+        
+        elif category in ["ssn"]:
+            # Show last 4: ***-**-1234
+            return f"***-**-{clean[-4:]}"
+        
+        elif category in ["email"]:
+            # Show first char and domain
+            parts = text.split('@')
+            if len(parts) == 2:
+                return f"{parts[0][0]}***@{parts[1]}"
+        
+        elif category in ["password", "pin", "api_key", "cvv"]:
+            # Fully mask
+            return "*" * min(len(text), 12)
+        
+        # Default: show first 2 and last 2
+        if len(text) > 4:
+            return text[:2] + "*" * (len(text) - 4) + text[-2:]
+        return "*" * len(text)
+    
+    def _deduplicate_matches(self, matches: List[Dict]) -> List[Dict]:
+        """Remove duplicate matches at same position"""
+        seen = set()
+        unique = []
+        
+        # Sort by confidence (highest first)
+        matches.sort(key=lambda x: x["confidence"], reverse=True)
+        
+        for match in matches:
+            key = (match["position"]["start"], match["position"]["end"])
+            if key not in seen:
+                seen.add(key)
+                unique.append(match)
+        
+        return unique
+    
+    def _sensitivity_rank(self, level: SensitivityLevel) -> int:
+        """Get numeric rank for sensitivity level"""
+        ranks = {
+            SensitivityLevel.NONE: 0,
+            SensitivityLevel.LOW: 1,
+            SensitivityLevel.MEDIUM: 2,
+            SensitivityLevel.HIGH: 3,
+            SensitivityLevel.CRITICAL: 4,
+        }
+        return ranks.get(level, 0)
+    
+    def _generate_recommendation(self, sensitivity: SensitivityLevel, categories: List[str]) -> str:
+        """Generate user-friendly recommendation"""
+        
+        if sensitivity == SensitivityLevel.NONE:
+            return "✅ No sensitive data detected. Safe to send."
+        
+        elif sensitivity == SensitivityLevel.LOW:
+            return "ℹ️ Low sensitivity data detected. Consider if the recipient needs this information."
+        
+        elif sensitivity == SensitivityLevel.MEDIUM:
+            return "⚠️ Medium sensitivity data detected. Verify you trust the recipient before sending."
+        
+        elif sensitivity == SensitivityLevel.HIGH:
+            return "🔶 High sensitivity data detected! Only send if absolutely necessary and to trusted recipients."
+        
+        else:  # CRITICAL
+            cat_str = ", ".join(categories[:3])
+            return f"🛑 CRITICAL: Highly sensitive data detected ({cat_str})! Strongly recommend NOT sending this information via this channel."
 
 
-# Testing the DLP Detector
-if __name__ == "__main__":
+# ============================================================
+# STANDALONE TESTING
+# ============================================================
+
+def test_dlp_detector():
+    """Test the DLP detector"""
+    
+    print("="*60)
+    print("🛡️ DLP DETECTOR - TEST SUITE")
+    print("="*60)
+    
     detector = DLPDetector()
     
-    # Test cases
-    test_messages = [
-        "My credit card is 4532-1234-5678-9010 please process payment",
-        "Here's my account details: IBAN GB82WEST12345698765432",
-        "My NIC is 199512345678 and phone is 0771234567",
-        "Password: MySecretPass123! for the system",
-        "This is confidential: Our salary budget is Rs. 5,000,000",
-        "Contact me at john@example.com or +94771234567",
-        "Just a normal message with no sensitive data",
-        "My API key is fake_key_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    test_cases = [
+        # Critical
+        ("My credit card is 4532015112830366", SensitivityLevel.CRITICAL),
+        ("Password: secretPass123", SensitivityLevel.CRITICAL),
+        ("My SSN is 123-45-6789", SensitivityLevel.CRITICAL),
+        ("API key: sk-1234567890abcdefghijklmnop", SensitivityLevel.CRITICAL),
+        ("PIN: 1234", SensitivityLevel.CRITICAL),
+        ("My NRIC is S1234567D", SensitivityLevel.CRITICAL),
+        
+        # High
+        ("Account number: 12345678901234", SensitivityLevel.HIGH),
+        ("IBAN: GB82WEST12345698765432", SensitivityLevel.HIGH),
+        
+        # Medium
+        ("Call me at +1-555-123-4567", SensitivityLevel.MEDIUM),
+        ("DOB: 01/15/1990", SensitivityLevel.MEDIUM),
+        
+        # Low
+        ("Email me at john@example.com", SensitivityLevel.LOW),
+        
+        # None
+        ("Hey, how are you doing today?", SensitivityLevel.NONE),
+        ("Meeting at 3pm tomorrow", SensitivityLevel.NONE),
     ]
     
-    print("=" * 80)
-    print("DLP DETECTOR - TEST RESULTS")
-    print("=" * 80)
+    passed = 0
+    failed = 0
     
-    for i, message in enumerate(test_messages, 1):
-        print(f"\n--- Test Case {i} ---")
-        print(f"Message: {message[:60]}{'...' if len(message) > 60 else ''}")
+    for text, expected_level in test_cases:
+        result = detector.analyze(text)
+        actual_level = SensitivityLevel(result["sensitivity_level"])
         
-        detections = detector.scan_text(message)
-        summary = detector.generate_summary(detections)
-        
-        print(f"\nRisk Level: {summary['risk_level']}")
-        print(f"Risk Score: {summary['risk_score']}/100")
-        print(f"Total Detections: {summary['total_detections']}")
-        
-        if detections:
-            print(f"\nDetected Sensitive Data:")
-            for detection in summary['detections']:
-                print(f"  • {detection['type']}: {detection['masked_value']}")
-                print(f"    Sensitivity: {detection['sensitivity'].upper()}")
-                print(f"    ⚠️  {detection['recommendation']}\n")
+        # Check if sensitivity matches or exceeds expected
+        if detector._sensitivity_rank(actual_level) >= detector._sensitivity_rank(expected_level):
+            status = "✅"
+            passed += 1
         else:
-            print("✓ No sensitive data detected - Safe to send!")
+            status = "❌"
+            failed += 1
         
-        print("-" * 80)
+        print(f"\n{status} Text: {text[:40]}...")
+        print(f"   Expected: {expected_level.value} | Got: {actual_level.value}")
+        if result["has_sensitive_data"]:
+            print(f"   Categories: {result['categories']}")
+            print(f"   Matches: {len(result['matches'])}")
+    
+    print("\n" + "="*60)
+    print(f"Results: {passed} passed, {failed} failed")
+    print("="*60)
+
+
+if __name__ == "__main__":
+    test_dlp_detector()

@@ -1,10 +1,43 @@
-# Python Virtual Environment (The heavy stuff)
+# -----------------------
+# PYTHON / BACKEND
+# -----------------------
+__pycache__/
+*.py[cod]
+*$py.class
 backend/venv/
-backend/__pycache__/
-*.pyc
+backend/env/
+.env
+backend/firebase-credentials.json  # IMPORTANT: Keep secrets local only!
 
-# Flutter Build Files (The other heavy stuff)
-mobile_app/build/
+# -----------------------
+# FLUTTER / DART
+# -----------------------
 .dart_tool/
-.idea/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+.pub-cache/
+.pub/
+
+# -----------------------
+# ANDROID / IOS generated files
+# -----------------------
+flutter_app/android/app/google-services.json # IMPORTANT: Keep secrets local only!
+*.ap_
+*.apk
+*.dex
+.gradle/
+local.properties
+flutter_app/ios/.generated/
+flutter_app/ios/Flutter/Generated.xcconfig
+flutter_app/ios/Flutter/app.flx
+flutter_app/ios/Flutter/gen_snapshot/
+flutter_app/ios/ServiceDefinitions.json
+
+# -----------------------
+# IDE / EDITOR
+# -----------------------
 .vscode/
+.idea/
+*.iml
