@@ -1,4 +1,19 @@
 # -----------------------
+# SECRETS (CRITICAL)
+# -----------------------
+backend/firebase-credentials.json
+flutter_app/android/app/google-services.json
+flutter_app/ios/Runner/GoogleService-Info.plist
+.env
+
+# -----------------------
+# DATABASE
+# -----------------------
+*.db
+*.sqlite
+*.sqlite3
+
+# -----------------------
 # PYTHON / BACKEND
 # -----------------------
 __pycache__/
@@ -6,34 +21,43 @@ __pycache__/
 *$py.class
 backend/venv/
 backend/env/
-.env
-backend/firebase-credentials.json  # IMPORTANT: Keep secrets local only!
+*.pkl
+*.joblib
+# Keep your CSVs if you want, or uncomment below to ignore them:
+# *.csv
 
 # -----------------------
-# FLUTTER / DART
+# FLUTTER (General)
 # -----------------------
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.pub-cache/
+**/.pub/
+# Ignore "build" folder anywhere (covers flutter_app/build/)
 build/
-.pub-cache/
-.pub/
+**/build/
 
 # -----------------------
-# ANDROID / IOS generated files
+# ANDROID SPECIFIC
 # -----------------------
-flutter_app/android/app/google-services.json # IMPORTANT: Keep secrets local only!
-*.ap_
-*.apk
-*.dex
-.gradle/
-local.properties
-flutter_app/ios/.generated/
-flutter_app/ios/Flutter/Generated.xcconfig
-flutter_app/ios/Flutter/app.flx
-flutter_app/ios/Flutter/gen_snapshot/
-flutter_app/ios/ServiceDefinitions.json
+**/.gradle/
+**/local.properties
+**/*.apk
+**/*.ap_
+**/*.dex
+
+# -----------------------
+# IOS SPECIFIC
+# -----------------------
+**/ios/.generated/
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.flx
+**/ios/Flutter/gen_snapshot/
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.h
+**/ios/Runner/GeneratedPluginRegistrant.m
 
 # -----------------------
 # IDE / EDITOR
@@ -41,3 +65,5 @@ flutter_app/ios/ServiceDefinitions.json
 .vscode/
 .idea/
 *.iml
+*.swp
+.DS_Store
