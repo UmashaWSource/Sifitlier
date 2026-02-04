@@ -35,7 +35,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score,
+    f1_score, classification_report, confusion_matrix
+)
 import joblib
 
 
@@ -281,7 +284,7 @@ class SpamClassifier:
         """
         Evaluate model on test data.
         
-        Returns detailed metrics and classification report.
+        Returns detailed metrics, classification report, and confusion matrix.
         """
         if not self.pipeline:
             raise RuntimeError("Model not loaded.")
@@ -291,12 +294,25 @@ class SpamClassifier:
         
         y_pred = self.pipeline.predict(X)
         
+        # Build confusion matrix
+        labels = ['ham', 'spam']
+        cm = confusion_matrix(y, y_pred, labels=labels)
+        
+        # Derive individual counts
+        tn, fp, fn, tp = cm.ravel()
+        
         return {
             'accuracy': accuracy_score(y, y_pred),
             'precision': precision_score(y, y_pred, pos_label='spam'),
             'recall': recall_score(y, y_pred, pos_label='spam'),
             'f1': f1_score(y, y_pred, pos_label='spam'),
-            'classification_report': classification_report(y, y_pred)
+            'classification_report': classification_report(y, y_pred),
+            'confusion_matrix': cm,
+            'cm_labels': labels,
+            'true_negatives': int(tn),   # Ham correctly classified as ham
+            'false_positives': int(fp),  # Ham incorrectly classified as spam
+            'false_negatives': int(fn),  # Spam incorrectly classified as ham
+            'true_positives': int(tp),   # Spam correctly classified as spam
         }
 
 
@@ -391,19 +407,51 @@ def create_sample_dataset() -> pd.DataFrame:
     return df.sample(frac=1).reset_index(drop=True)  # Shuffle
 
 
+def print_confusion_matrix(cm, labels):
+    """
+    Print a formatted confusion matrix to the terminal.
+    
+    Layout:
+                        Predicted
+                      Ham    Spam
+       Actual Ham  |  TN  |  FP  |
+       Actual Spam |  FN  |  TP  |
+    """
+    tn, fp, fn, tp = cm.ravel()
+    total = tn + fp + fn + tp
+
+    print()
+    print("   ┌─────────────────────────────────────────────────┐")
+    print("   │            CONFUSION MATRIX                     │")
+    print("   ├─────────────────────────────────────────────────┤")
+    print("   │                      Predicted                  │")
+    print("   │                   Ham       Spam                │")
+    print(f"  │   Actual Ham   │ {tn:5d}   │ {fp:5d}   │        │")
+    print(f"  │   Actual Spam  │ {fn:5d}   │ {tp:5d}   │        │")
+    print("   ├─────────────────────────────────────────────────┤")
+    print(f"  │  True Negatives  (TN): {tn:5d}  — Ham ✓ as Ham  │")
+    print(f"  │  False Positives (FP): {fp:5d}  — Ham ✗ as Spam │")
+    print(f"  │  False Negatives (FN): {fn:5d}  — Spam ✗ as Ham │")
+    print(f"  │  True Positives  (TP): {tp:5d}  — Spam ✓ as Spam│")
+    print("   ├─────────────────────────────────────────────────┤")
+    print(f"  │  Total samples tested:  {total:5d}              │")
+    print("   └─────────────────────────────────────────────────┘")
+    print()
+
+
 def train_and_save_model(data_path: str = 'spam.csv', model_path: str = 'spam_classifier_pipeline.pkl'):
     """Main training function"""
     
     print("="*60)
-    print("🤖 SIFITLIER - Spam Classifier Training")
+    print(" SIFITLIER - Spam Classifier Training")
     print("="*60)
     
     # Load data
-    print("\n📁 Loading dataset...")
+    print("\n>>> 1. Loading dataset...")
     df = load_dataset(data_path)
     
     # Split data
-    print("\n📊 Splitting data...")
+    print("\n>>> 2. Splitting data...")
     X_train, X_test, y_train, y_test = train_test_split(
         df['message'].tolist(),
         df['label'].tolist(),
@@ -414,7 +462,7 @@ def train_and_save_model(data_path: str = 'spam.csv', model_path: str = 'spam_cl
     print(f"   Training: {len(X_train)} | Test: {len(X_test)}")
     
     # Train model
-    print("\n🎯 Training model...")
+    print("\n>>> 3. Training model...")
     classifier = SpamClassifier()
     train_metrics = classifier.train(X_train, y_train)
     
@@ -425,7 +473,7 @@ def train_and_save_model(data_path: str = 'spam.csv', model_path: str = 'spam_cl
     print(f"   └── F1 Score:  {train_metrics['f1']:.4f}")
     
     # Evaluate on test set
-    print("\n📈 Evaluating on test set...")
+    print("\n>>> 4. Evaluating on test set...")
     test_metrics = classifier.evaluate(X_test, y_test)
     
     print(f"\n   Test Metrics:")
@@ -434,12 +482,19 @@ def train_and_save_model(data_path: str = 'spam.csv', model_path: str = 'spam_cl
     print(f"   ├── Recall:    {test_metrics['recall']:.4f}")
     print(f"   └── F1 Score:  {test_metrics['f1']:.4f}")
     
+    # Print confusion matrix
+    print_confusion_matrix(test_metrics['confusion_matrix'], test_metrics['cm_labels'])
+    
+    # Print full classification report
+    print("   Classification Report:")
+    print("   " + test_metrics['classification_report'].replace("\n", "\n   "))
+    
     # Save model
-    print(f"\n💾 Saving model to {model_path}...")
+    print(f"\n Saving model to {model_path}...")
     classifier.save(model_path)
     
     # Test predictions
-    print("\n🧪 Testing predictions...")
+    print("\n Testing predictions...")
     test_messages = [
         "Hey, want to grab lunch tomorrow?",
         "CONGRATULATIONS! You won $1,000,000!",

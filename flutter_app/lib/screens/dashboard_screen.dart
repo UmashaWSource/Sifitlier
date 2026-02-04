@@ -1,14 +1,15 @@
 // lib/screens/dashboard_screen.dart
 // ===================================
-// Main dashboard with navigation to all features
+// Main dashboard with navigation to all features (Updated with Protection)
 
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'spam_check_screen.dart';
-import 'dlp_check_screen.dart' as dlp;
+import 'dlp_check_screen.dart';
 import 'logs_screen.dart';
 import 'handbook_screen.dart';
 import 'settings_screen.dart';
+import 'protection_screen.dart'; // NEW: Added protection screen
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -259,36 +260,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildQuickActions() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SpamCheckScreen()),
+        // First row: Check Spam & Check DLP
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SpamCheckScreen()),
+                ),
+                icon: const Icon(Icons.search),
+                label: const Text('Check Spam'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.red[100],
+                  foregroundColor: Colors.red[900],
+                ),
+              ),
             ),
-            icon: const Icon(Icons.search),
-            label: const Text('Check Spam'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: Colors.red[100],
-              foregroundColor: Colors.red[900],
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DLPCheckScreen()),
+                ),
+                icon: const Icon(Icons.security),
+                label: const Text('Check DLP'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.orange[100],
+                  foregroundColor: Colors.orange[900],
+                ),
+              ),
             ),
-          ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
+        const SizedBox(height: 12),
+        // NEW: Real-Time Protection Button
+        SizedBox(
+          width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const dlp.DLPCheckScreen()),
+              MaterialPageRoute(builder: (_) => const ProtectionScreen()),
             ),
-            icon: const Icon(Icons.security),
-            label: const Text('Check DLP'),
+            icon: const Icon(Icons.shield),
+            label: const Text('Real-Time Protection'),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: Colors.orange[100],
-              foregroundColor: Colors.orange[900],
+              backgroundColor: Colors.green[100],
+              foregroundColor: Colors.green[900],
             ),
           ),
         ),
@@ -310,7 +334,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'subtitle': 'Check for sensitive data',
         'icon': Icons.lock,
         'color': Colors.orange,
-        'screen': const dlp.DLPCheckScreen(),
+        'screen': const DLPCheckScreen(),
+      },
+      {
+        'title': 'Real-Time Guard',
+        'subtitle': 'Auto-scan SMS & clipboard',
+        'icon': Icons.shield,
+        'color': Colors.green,
+        'screen': const ProtectionScreen(),
       },
       {
         'title': 'Alert Logs',
@@ -323,8 +354,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'title': 'Security Handbook',
         'subtitle': 'Learn about security',
         'icon': Icons.menu_book,
-        'color': Colors.green,
+        'color': Colors.purple,
         'screen': const HandbookScreen(),
+      },
+      {
+        'title': 'Settings',
+        'subtitle': 'App configuration',
+        'icon': Icons.settings,
+        'color': Colors.grey,
+        'screen': const SettingsScreen(),
       },
     ];
 
