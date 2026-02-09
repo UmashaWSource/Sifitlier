@@ -3,11 +3,14 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        // Backup mirror to fix "No such host known" errors
+        maven { url "https://repo1.maven.org/maven2/" }
     }
 
     dependencies {
+        // This version (8.1.0) is stable for Gradle 8.4 and Java 19
+        classpath 'com.android.tools.build:gradle:8.1.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        
     }
 }
 
@@ -15,6 +18,8 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // Backup mirror applied globally for all plugins (like clipboard_watcher)
+        maven { url "https://repo1.maven.org/maven2/" }
     }
 }
 

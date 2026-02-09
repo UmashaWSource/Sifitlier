@@ -18,6 +18,11 @@ dependencies:
   # HTTP Client (for API calls)
   http: ^1.2.0
   
+  # Gmail OAuth packages (Compatible with Dart 3.2.6)
+  google_sign_in: ^6.1.6
+  googleapis: ^11.4.0
+  extension_google_sign_in_as_googleapis_auth: ^2.0.10
+  
   # State Management
   provider: ^6.1.1
   

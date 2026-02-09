@@ -1,6 +1,6 @@
 // lib/screens/dashboard_screen.dart
 // ===================================
-// Main dashboard with navigation to all features (Updated with Protection)
+// Main dashboard with navigation to all features (Updated with Secure Your Channels)
 
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
@@ -9,7 +9,8 @@ import 'dlp_check_screen.dart';
 import 'logs_screen.dart';
 import 'handbook_screen.dart';
 import 'settings_screen.dart';
-import 'protection_screen.dart'; // NEW: Added protection screen
+import 'protection_screen.dart';
+import 'gmail_connect_screen.dart'; // Gmail OAuth integration
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -100,6 +101,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 12),
               _buildQuickActions(),
+
+              const SizedBox(height: 24),
+
+              // NEW: Secure Your Channels Section
+              const Text(
+                'Secure Your Channels',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildSecureChannelsCard(),
 
               const SizedBox(height: 24),
 
@@ -299,7 +313,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        // NEW: Real-Time Protection Button
+        // Real-Time Protection Button
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
@@ -317,6 +331,188 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  /// NEW: Secure Your Channels Card with Gmail and Telegram options
+  Widget _buildSecureChannelsCard() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.lock, color: Colors.blue, size: 24),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Protect Your Messaging Channels',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Connect and scan your email & messaging apps',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Channel Buttons
+            Row(
+              children: [
+                // Gmail Button
+                Expanded(
+                  child: _buildChannelButton(
+                    label: 'Scan My Gmail',
+                    icon: Icons.email,
+                    iconColor: Colors.red,
+                    backgroundColor: Colors.red.withOpacity(0.1),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const GmailConnectScreen()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Telegram Button
+                Expanded(
+                  child: _buildChannelButton(
+                    label: 'Secure Telegram',
+                    icon: Icons.telegram,
+                    iconColor: Colors.blue,
+                    backgroundColor: Colors.blue.withOpacity(0.1),
+                    onTap: () => _showTelegramComingSoon(),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Channel button widget
+  Widget _buildChannelButton({
+    required String label,
+    required IconData icon,
+    required Color iconColor,
+    required Color backgroundColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: iconColor.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: iconColor, size: 32),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: iconColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Show coming soon dialog for Telegram
+  void _showTelegramComingSoon() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.telegram, color: Colors.blue, size: 48),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Telegram Integration',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Telegram bot integration is coming soon! This feature will allow you to scan messages directly through our Telegram bot.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: const Text('Got it!'),
+            ),
+          ),
+        ],
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      ),
     );
   }
 
