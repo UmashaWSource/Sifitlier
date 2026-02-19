@@ -23,7 +23,7 @@ backend/venv/
 backend/env/
 *.pkl
 *.joblib
-# Keep your CSVs if you want, or uncomment below to ignore them:
+# Keep  CSVs only if required, or uncomment below to ignore them:
 # *.csv
 
 # -----------------------

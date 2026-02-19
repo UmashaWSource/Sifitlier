@@ -246,6 +246,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- Health Check ---
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "sifitlier-api"}
+# --------------------------
 
 # Database dependency
 def get_db():
