@@ -14,8 +14,9 @@ class ApiService {
 
   // Default: Android Emulator
   //static const String baseUrl = 'http://10.0.2.2:8000'; local host (version 2.0)
+  //static const String baseUrl ='https://sifitlier.onrender.com'; //version 3.0 with render.com deployment
   static const String baseUrl =
-      'https://sifitlier.onrender.com/api/v1'; //version 3.0 with render.com deployment
+      'https://sifitlier.onrender.com'; // Production URL (update with actual backend URL)
 
   // ============================================================
   // SPAM DETECTION
