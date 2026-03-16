@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sifitlier Security Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 25px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #888;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .tab-btn.active {
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+            border-color: #00d4ff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Input Section */
+        .input-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 30px;
+        }
+
+        .input-section h3 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .input-section > p {
+            text-align: center;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #888;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .input-group textarea,
+        .input-group input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            font-size: 1rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            color: #fff;
+            resize: vertical;
+        }
+
+        .input-group textarea {
+            min-height: 100px;
+        }
+
+        .input-group textarea:focus,
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        .input-group textarea::placeholder,
+        .input-group input::placeholder {
+            color: #555;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        /* Radio buttons */
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #00d4ff;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #555 !important;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #cc5555 100%);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Batch Queue */
+        .batch-queue {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .batch-queue h4 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .batch-queue h4 span {
+            font-size: 0.85rem;
+            color: #888;
+            font-weight: normal;
+        }
+
+        .queue-empty {
+            text-align: center;
+            color: #666;
+            padding: 30px;
+        }
+
+        .queue-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            gap: 15px;
+        }
+
+        .queue-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .queue-num {
+            width: 30px;
+            height: 30px;
+            background: rgba(0, 212, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #00d4ff;
+            flex-shrink: 0;
+        }
+
+        .queue-message {
+            flex: 1;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .queue-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .queue-badge.sensitive {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+
+        .queue-badge.safe {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .queue-badge.platform {
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+        }
+
+        .queue-remove {
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .queue-remove:hover {
+            opacity: 1;
+        }
+
+        /* Results */
+        .results-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .score-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .score-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .score-box.sds {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .score-box h4 {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        .score-value {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .score-box.f1 .score-value {
+            color: #ffd700;
+        }
+
+        .score-box.sds .score-value {
+            color: #00d4ff;
+        }
+
+        .insight-box {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .insight-box h4 {
+            color: #00ff88;
+            margin-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-card h4 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #888;
+        }
+
+        .stat-value {
+            font-weight: bold;
+        }
+
+        .stat-value.positive {
+            color: #00ff88;
+        }
+
+        .stat-value.negative {
+            color: #ff6b6b;
+        }
+
+        .stat-value.highlight {
+            color: #00d4ff;
+        }
+
+        /* Detailed Results */
+        .detailed-results {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .detailed-results h4 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            position: sticky;
+            top: 0;
+            background: rgba(26, 26, 46, 0.95);
+            padding: 10px 0;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            gap: 15px;
+        }
+
+        .result-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .result-icon.pass {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .result-icon.fail {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+
+        .result-info {
+            flex: 1;
+        }
+
+        .result-message {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .result-meta {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .result-type {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .result-type.tp { background: rgba(0, 255, 136, 0.2); color: #00ff88; }
+        .result-type.tn { background: rgba(0, 212, 255, 0.2); color: #00d4ff; }
+        .result-type.fp { background: rgba(255, 165, 0, 0.2); color: #ffa500; }
+        .result-type.fn { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; }
+
+        /* Quick Analyze Results */
+        .quick-result {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .quick-result.active {
+            display: block;
+        }
+
+        .result-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .result-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .result-card.spam {
+            border-color: #ffd700;
+        }
+
+        .result-card.dlp {
+            border-color: #00d4ff;
+        }
+
+        .result-card h4 {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .result-card.spam h4 {
+            color: #ffd700;
+        }
+
+        .result-card.dlp h4 {
+            color: #00d4ff;
+        }
+
+        .result-status {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .result-status.safe {
+            color: #00ff88;
+        }
+
+        .result-status.danger {
+            color: #ff6b6b;
+        }
+
+        .result-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .result-detail:last-child {
+            border-bottom: none;
+        }
+
+        /* Formula Box */
+        .formula-box {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid #00d4ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .formula-box h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+
+        .formula {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            color: #fff;
+        }
+
+        .formula-note {
+            color: #666;
+            margin-top: 10px;
+            font-size: 0.85rem;
+        }
+
+        /* Error Box */
+        .error-box {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid #ff6b6b;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            color: #ff6b6b;
+            display: none;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 50px;
+            display: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #888;
+            font-size: 0.95rem;
+        }
+
+        footer span {
+            color: #00d4ff;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-fill.green { background: linear-gradient(90deg, #00ff88, #00cc6a); }
+        .progress-fill.blue { background: linear-gradient(90deg, #00d4ff, #0099cc); }
+        .progress-fill.yellow { background: linear-gradient(90deg, #ffd700, #ffaa00); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .tab-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .score-comparison,
+            .result-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .score-value {
+                font-size: 2.5rem;
+            }
+
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+
+            .queue-item {
+                flex-wrap: wrap;
+            }
+
+            .queue-message {
+                width: 100%;
+                order: 2;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ Sifitlier Security Analyzer</h1>
+            <p>AI-Powered Spam Detection & Data Loss Prevention</p>
+        </header>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('quick')">🔍 Quick Analyze</button>
+            <button class="tab-btn" onclick="switchTab('batch')">📊 Batch Evaluation</button>
+            <button class="tab-btn" onclick="switchTab('dataset')">📁 Dataset Evaluation</button>
+        </div>
+
+        <!-- Tab 1: Quick Analyze -->
+        <div id="tab-quick" class="tab-content active">
+            <div class="input-section">
+                <h3>🔍 Quick Analyze</h3>
+                <p>Test any message for spam and sensitive data detection</p>
+                
+                <div class="input-group">
+                    <label>Enter message to analyze:</label>
+                    <textarea id="quickMessage" placeholder="Type or paste a message here...&#10;&#10;Examples:&#10;• My password is Secret123&#10;• Congratulations! You won $1,000,000!&#10;• My credit card is 4532-1234-5678-9012"></textarea>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Platform:</label>
+                        <select id="quickPlatform">
+                            <option value="sms">SMS</option>
+                            <option value="telegram">Telegram</option>
+                            <option value="email">Email</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn btn-success btn-primary" id="quickBtn" onclick="quickAnalyze()">
+                    🔍 Analyze Message
+                </button>
+
+                <div id="quickError" class="error-box"></div>
+            </div>
+
+            <!-- Quick Result -->
+            <div class="quick-result" id="quickResult">
+                <div class="result-cards">
+                    <div class="result-card spam">
+                        <h4>🚫 Spam Detection</h4>
+                        <div class="result-status" id="spamStatus">-</div>
+                        <div class="result-detail">
+                            <span class="result-label">Risk Level</span>
+                            <span class="stat-value" id="spamRisk">-</span>
+                        </div>
+                        <div class="result-detail">
+                            <span class="result-label">Confidence</span>
+                            <span class="stat-value" id="spamConfidence">-</span>
+                        </div>
+                        <div class="result-detail">
+                            <span class="result-label">Probability</span>
+                            <span class="stat-value" id="spamProbability">-</span>
+                        </div>
+                    </div>
+                    <div class="result-card dlp">
+                        <h4>🔐 DLP Detection</h4>
+                        <div class="result-status" id="dlpStatus">-</div>
+                        <div class="result-detail">
+                            <span class="result-label">Sensitivity</span>
+                            <span class="stat-value" id="dlpSensitivity">-</span>
+                        </div>
+                        <div class="result-detail">
+                            <span class="result-label">Categories</span>
+                            <span class="stat-value" id="dlpCategories">-</span>
+                        </div>
+                        <div class="result-detail">
+                            <span class="result-label">Matches</span>
+                            <span class="stat-value" id="dlpMatches">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Batch Evaluation -->
+        <div id="tab-batch" class="tab-content">
+            <div class="formula-box">
+                <h3>SDS Formula (Sensitivity Detection Score)</h3>
+                <p class="formula">SDS = (TP × Cw × Pf) / (TP + FP + FN + Cp)</p>
+                <p class="formula-note">
+                    TP = True Positives | Cw = Context Weight | Pf = Platform Factor | Cp = Context Penalty
+                </p>
+            </div>
+
+            <div class="input-section">
+                <h3>📊 Batch Evaluation</h3>
+                <p>Build your own test suite and evaluate DLP performance</p>
+                
+                <div class="input-group">
+                    <label>Message:</label>
+                    <input type="text" id="batchMessage" placeholder="Enter a test message...">
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Expected Result:</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="batchExpected" value="sensitive" checked>
+                                <span>🔐 Sensitive</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="batchExpected" value="safe">
+                                <span>✅ Safe</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Platform:</label>
+                        <select id="batchPlatform">
+                            <option value="sms">SMS</option>
+                            <option value="telegram">Telegram</option>
+                            <option value="email">Email</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn btn-success" onclick="addToBatch()" style="width: 100%;">
+                    ➕ Add to Batch
+                </button>
+
+                <!-- Batch Queue -->
+                <div class="batch-queue">
+                    <h4>
+                        📋 Batch Queue 
+                        <span id="batchCount">(0 cases)</span>
+                    </h4>
+                    <div id="batchList">
+                        <div class="queue-empty">
+                            No test cases added yet. Add messages above to build your test suite.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group" style="margin-top: 20px;">
+                    <button class="btn btn-primary" id="runBatchBtn" onclick="runBatchEvaluation()" disabled>
+                        🚀 Run Evaluation
+                    </button>
+                    <button class="btn btn-danger" onclick="clearBatch()">
+                        🗑️ Clear All
+                    </button>
+                    <button class="btn btn-secondary" id="exportBtn" onclick="exportResults()" disabled>
+                        📥 Export Results
+                    </button>
+                </div>
+
+                <div id="batchError" class="error-box"></div>
+            </div>
+
+            <div class="loading" id="batchLoading">
+                <div class="spinner"></div>
+                <p>Running evaluation...</p>
+            </div>
+
+            <!-- Batch Results -->
+            <div class="results-section" id="batchResults">
+                <div class="score-comparison">
+                    <div class="score-box f1">
+                        <h4>Traditional F1 Score</h4>
+                        <div class="score-value" id="batchF1">-</div>
+                    </div>
+                    <div class="score-box sds">
+                        <h4>SDS Score (Novel Metric)</h4>
+                        <div class="score-value" id="batchSDS">-</div>
+                    </div>
+                </div>
+
+                <div class="insight-box">
+                    <h4>💡 Research Insight</h4>
+                    <p id="batchInsight">-</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>📊 Summary</h4>
+                        <div class="stat-row">
+                            <span class="stat-label">Total Tests</span>
+                            <span class="stat-value" id="batchTotal">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">True Positives</span>
+                            <span class="stat-value positive" id="batchTP">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">True Negatives</span>
+                            <span class="stat-value positive" id="batchTN">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">False Positives</span>
+                            <span class="stat-value negative" id="batchFP">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">False Negatives</span>
+                            <span class="stat-value negative" id="batchFN">-</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h4>📈 Traditional Metrics</h4>
+                        <div class="stat-row">
+                            <span class="stat-label">Precision</span>
+                            <span class="stat-value" id="batchPrecision">-</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill yellow" id="precisionBar" style="width: 0%"></div>
+                        </div>
+                        <div class="stat-row" style="margin-top: 10px;">
+                            <span class="stat-label">Recall</span>
+                            <span class="stat-value" id="batchRecall">-</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill yellow" id="recallBar" style="width: 0%"></div>
+                        </div>
+                        <div class="stat-row" style="margin-top: 10px;">
+                            <span class="stat-label">Accuracy</span>
+                            <span class="stat-value" id="batchAccuracy">-</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill yellow" id="accuracyBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h4>🎯 SDS Components</h4>
+                        <div class="stat-row">
+                            <span class="stat-label">Context Weight (Cw)</span>
+                            <span class="stat-value highlight" id="batchCw">-</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill blue" id="cwBar" style="width: 0%"></div>
+                        </div>
+                        <div class="stat-row" style="margin-top: 10px;">
+                            <span class="stat-label">Platform Factor (Pf)</span>
+                            <span class="stat-value highlight" id="batchPf">-</span>
+                        </div>
+                        <div class="stat-row" style="margin-top: 10px;">
+                            <span class="stat-label">Context Penalty (Cp)</span>
+                            <span class="stat-value negative" id="batchCp">-</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h4>📱 Platform Accuracy</h4>
+                        <div class="stat-row">
+                            <span class="stat-label">SMS</span>
+                            <span class="stat-value" id="platSMS">-</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill green" id="smsBar" style="width: 0%"></div>
+                        </div>
+                        <div class="stat-row" style="margin-top: 10px;">
+                            <span class="stat-label">Telegram</span>
+                            <span class="stat-value" id="platTelegram">-</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill green" id="telegramBar" style="width: 0%"></div>
+                        </div>
+                        <div class="stat-row" style="margin-top: 10px;">
+                            <span class="stat-label">Email</span>
+                            <span class="stat-value" id="platEmail">-</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill green" id="emailBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detailed-results" id="batchDetailed">
+                    <h4>📋 Detailed Results</h4>
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Dataset Evaluation -->
+        <div id="tab-dataset" class="tab-content">
+            <div class="formula-box">
+                <h3>SDS Formula (Sensitivity Detection Score)</h3>
+                <p class="formula">SDS = (TP × Cw × Pf) / (TP + FP + FN + Cp)</p>
+                <p class="formula-note">
+                    TP = True Positives | Cw = Context Weight | Pf = Platform Factor | Cp = Context Penalty
+                </p>
+            </div>
+
+            <div class="input-section">
+                <h3>📁 Dataset Evaluation</h3>
+                <p>Run evaluation on predefined 25 test cases for consistent benchmarking</p>
+                
+                <button class="btn btn-primary" id="datasetBtn" onclick="runDatasetEvaluation()">
+                    🚀 Run Dataset Evaluation
+                </button>
+            </div>
+
+            <div class="loading" id="datasetLoading">
+                <div class="spinner"></div>
+                <p>Running evaluation on 25 test cases...</p>
+            </div>
+
+            <!-- Dataset Results -->
+            <div class="results-section" id="datasetResults">
+                <!-- Same structure as batch results, filled by JS -->
+            </div>
+        </div>
+
+        <footer>
+            <p><span>Sifitlier</span> | AI-Powered Security | © 2026 Umasha Wijenayake</p>
+        </footer>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_BASE = 'http://localhost:8000';
+
+        // Platform factors for SDS calculation
+        const PLATFORM_FACTORS = {
+            sms: 1.2,
+            telegram: 1.0,
+            email: 0.9
+        };
+
+        // Batch queue
+        let batchQueue = [];
+        let batchResults = null;
+
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+        }
+
+        // ============== Quick Analyze ==============
+        async function quickAnalyze() {
+            const message = document.getElementById('quickMessage').value.trim();
+            const errorBox = document.getElementById('quickError');
+            
+            errorBox.style.display = 'none';
+            
+            if (!message) {
+                errorBox.textContent = 'Please enter a message to analyze.';
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            const btn = document.getElementById('quickBtn');
+            btn.disabled = true;
+            btn.textContent = 'Analyzing...';
+
+            try {
+                const [spamData, dlpData] = await Promise.all([
+                    fetch(`${API_BASE}/api/v1/spam/simple-check`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message })
+                    }).then(r => r.json()),
+                    fetch(`${API_BASE}/api/v1/dlp/simple-check`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message })
+                    }).then(r => r.json())
+                ]);
+
+                displayQuickResult(spamData, dlpData);
+
+            } catch (error) {
+                console.error('Error:', error);
+                errorBox.innerHTML = `<strong>Error:</strong> ${error.message}<br><small>Make sure backend is running at ${API_BASE}</small>`;
+                errorBox.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔍 Analyze Message';
+            }
+        }
+
+        function displayQuickResult(spam, dlp) {
+            document.getElementById('quickResult').classList.add('active');
+
+            const isSpam = spam.is_spam || false;
+            document.getElementById('spamStatus').textContent = isSpam ? '🚨 SPAM DETECTED' : '✅ SAFE';
+            document.getElementById('spamStatus').className = `result-status ${isSpam ? 'danger' : 'safe'}`;
+            document.getElementById('spamRisk').textContent = (spam.risk_level || 'N/A').toUpperCase();
+            document.getElementById('spamConfidence').textContent = `${((spam.confidence || 0) * 100).toFixed(1)}%`;
+            document.getElementById('spamProbability').textContent = `${((spam.spam_probability || 0) * 100).toFixed(1)}%`;
+
+            const hasSensitive = dlp.has_sensitive_data || false;
+            document.getElementById('dlpStatus').textContent = hasSensitive ? '🔐 SENSITIVE DATA' : '✅ SAFE';
+            document.getElementById('dlpStatus').className = `result-status ${hasSensitive ? 'danger' : 'safe'}`;
+            document.getElementById('dlpSensitivity').textContent = (dlp.sensitivity_level || 'N/A').toUpperCase();
+            document.getElementById('dlpCategories').textContent = (dlp.categories || []).join(', ') || 'None';
+            document.getElementById('dlpMatches').textContent = dlp.total_matches || 0;
+        }
+
+        // ============== Batch Evaluation ==============
+        function addToBatch() {
+            const message = document.getElementById('batchMessage').value.trim();
+            const expected = document.querySelector('input[name="batchExpected"]:checked').value;
+            const platform = document.getElementById('batchPlatform').value;
+
+            if (!message) {
+                alert('Please enter a message');
+                return;
+            }
+
+            batchQueue.push({
+                id: Date.now(),
+                message,
+                expected: expected === 'sensitive',
+                platform
+            });
+
+            document.getElementById('batchMessage').value = '';
+            renderBatchQueue();
+            updateBatchButtons();
+        }
+
+        function removeFromBatch(id) {
+            batchQueue = batchQueue.filter(item => item.id !== id);
+            renderBatchQueue();
+            updateBatchButtons();
+        }
+
+        function clearBatch() {
+            if (batchQueue.length > 0 && !confirm('Clear all test cases?')) return;
+            batchQueue = [];
+            batchResults = null;
+            renderBatchQueue();
+            updateBatchButtons();
+            document.getElementById('batchResults').classList.remove('active');
+        }
+
+        function renderBatchQueue() {
+            const list = document.getElementById('batchList');
+            const count = document.getElementById('batchCount');
+            
+            count.textContent = `(${batchQueue.length} cases)`;
+
+            if (batchQueue.length === 0) {
+                list.innerHTML = '<div class="queue-empty">No test cases added yet. Add messages above to build your test suite.</div>';
+                return;
+            }
+
+            list.innerHTML = batchQueue.map((item, i) => `
+                <div class="queue-item">
+                    <div class="queue-num">${i + 1}</div>
+                    <div class="queue-message">${escapeHtml(item.message)}</div>
+                    <span class="queue-badge ${item.expected ? 'sensitive' : 'safe'}">${item.expected ? 'Sensitive' : 'Safe'}</span>
+                    <span class="queue-badge platform">${item.platform.toUpperCase()}</span>
+                    <button class="queue-remove" onclick="removeFromBatch(${item.id})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function updateBatchButtons() {
+            document.getElementById('runBatchBtn').disabled = batchQueue.length < 2;
+            document.getElementById('exportBtn').disabled = !batchResults;
+        }
+
+        async function runBatchEvaluation() {
+            if (batchQueue.length < 2) {
+                alert('Please add at least 2 test cases');
+                return;
+            }
+
+            const btn = document.getElementById('runBatchBtn');
+            const loading = document.getElementById('batchLoading');
+            const results = document.getElementById('batchResults');
+
+            btn.disabled = true;
+            loading.style.display = 'block';
+            results.classList.remove('active');
+
+            try {
+                // Run DLP check for each case
+                const detailedResults = [];
+                
+                for (const testCase of batchQueue) {
+                    const response = await fetch(`${API_BASE}/api/v1/dlp/simple-check`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: testCase.message })
+                    });
+                    const dlpResult = await response.json();
+                    
+                    const detected = dlpResult.has_sensitive_data || false;
+                    const correct = detected === testCase.expected;
+                    
+                    let resultType;
+                    if (testCase.expected && detected) resultType = 'TP';
+                    else if (!testCase.expected && !detected) resultType = 'TN';
+                    else if (!testCase.expected && detected) resultType = 'FP';
+                    else resultType = 'FN';
+
+                    detailedResults.push({
+                        message: testCase.message,
+                        platform: testCase.platform,
+                        expected: testCase.expected,
+                        detected,
+                        correct,
+                        resultType,
+                        categories: dlpResult.categories || []
+                    });
+                }
+
+                // Calculate metrics
+                batchResults = calculateMetrics(detailedResults);
+                displayBatchResults(batchResults);
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('batchError').textContent = `Error: ${error.message}`;
+                document.getElementById('batchError').style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+                updateBatchButtons();
+            }
+        }
+
+        function calculateMetrics(results) {
+            const tp = results.filter(r => r.resultType === 'TP').length;
+            const tn = results.filter(r => r.resultType === 'TN').length;
+            const fp = results.filter(r => r.resultType === 'FP').length;
+            const fn = results.filter(r => r.resultType === 'FN').length;
+            const total = results.length;
+
+            // Traditional metrics
+            const precision = tp + fp > 0 ? tp / (tp + fp) : 0;
+            const recall = tp + fn > 0 ? tp / (tp + fn) : 0;
+            const f1 = precision + recall > 0 ? 2 * (precision * recall) / (precision + recall) : 0;
+            const accuracy = total > 0 ? (tp + tn) / total : 0;
+
+            // Context Weight (Cw) - based on category matching
+            const tpResults = results.filter(r => r.resultType === 'TP');
+            const correctCategories = tpResults.filter(r => r.categories && r.categories.length > 0).length;
+            const cw = tpResults.length > 0 ? correctCategories / tpResults.length : 0;
+
+            // Platform Factor (Pf) - weighted average
+            const platformCounts = { sms: 0, telegram: 0, email: 0 };
+            results.forEach(r => platformCounts[r.platform]++);
+            
+            let pfSum = 0, pfCount = 0;
+            for (const [platform, count] of Object.entries(platformCounts)) {
+                if (count > 0) {
+                    pfSum += PLATFORM_FACTORS[platform] * count;
+                    pfCount += count;
+                }
+            }
+            const pf = pfCount > 0 ? pfSum / pfCount : 1.0;
+
+            // Context Penalty (Cp)
+            const fnPenalty = fn * 2;  // Missed sensitive data is worse
+            const fpPenalty = fp * 0.5; // False alarms less severe
+            const wrongCategoryPenalty = tpResults.filter(r => !r.categories || r.categories.length === 0).length * 0.3;
+            const cp = fnPenalty + fpPenalty + wrongCategoryPenalty;
+
+            // SDS Score
+            const denominator = tp + fp + fn + cp;
+            const sds = denominator > 0 ? (tp * cw * pf) / denominator : 0;
+
+            // Platform accuracy
+            const platformAccuracy = {};
+            for (const platform of ['sms', 'telegram', 'email']) {
+                const platformResults = results.filter(r => r.platform === platform);
+                if (platformResults.length > 0) {
+                    const correct = platformResults.filter(r => r.correct).length;
+                    platformAccuracy[platform] = correct / platformResults.length;
+                } else {
+                    platformAccuracy[platform] = 0;
+                }
+            }
+
+            // Insight
+            const diff = f1 - sds;
+            let insight;
+            if (diff > 0.3) {
+                insight = `SDS is ${diff.toFixed(2)} lower than F1 - system has significant context/platform weaknesses`;
+            } else if (diff > 0.1) {
+                insight = `SDS is ${diff.toFixed(2)} lower than F1 - moderate context-awareness issues detected`;
+            } else if (diff > 0) {
+                insight = `SDS is close to F1 - good context-aware performance`;
+            } else {
+                insight = `SDS matches or exceeds F1 - excellent context-aware detection`;
+            }
+
+            return {
+                summary: { total, tp, tn, fp, fn },
+                traditional: { precision, recall, f1, accuracy },
+                sdsComponents: { cw, pf, cp },
+                sdsScore: sds,
+                platformAccuracy,
+                insight,
+                detailed: results
+            };
+        }
+
+        function displayBatchResults(data) {
+            const results = document.getElementById('batchResults');
+            
+            // Scores
+            document.getElementById('batchF1').textContent = `${(data.traditional.f1 * 100).toFixed(1)}%`;
+            document.getElementById('batchSDS').textContent = `${(data.sdsScore * 100).toFixed(1)}%`;
+            
+            // Insight
+            document.getElementById('batchInsight').textContent = data.insight;
+
+            // Summary
+            document.getElementById('batchTotal').textContent = data.summary.total;
+            document.getElementById('batchTP').textContent = data.summary.tp;
+            document.getElementById('batchTN').textContent = data.summary.tn;
+            document.getElementById('batchFP').textContent = data.summary.fp;
+            document.getElementById('batchFN').textContent = data.summary.fn;
+
+            // Traditional metrics
+            document.getElementById('batchPrecision').textContent = `${(data.traditional.precision * 100).toFixed(1)}%`;
+            document.getElementById('batchRecall').textContent = `${(data.traditional.recall * 100).toFixed(1)}%`;
+            document.getElementById('batchAccuracy').textContent = `${(data.traditional.accuracy * 100).toFixed(1)}%`;
+            document.getElementById('precisionBar').style.width = `${data.traditional.precision * 100}%`;
+            document.getElementById('recallBar').style.width = `${data.traditional.recall * 100}%`;
+            document.getElementById('accuracyBar').style.width = `${data.traditional.accuracy * 100}%`;
+
+            // SDS components
+            document.getElementById('batchCw').textContent = data.sdsComponents.cw.toFixed(4);
+            document.getElementById('batchPf').textContent = data.sdsComponents.pf.toFixed(4);
+            document.getElementById('batchCp').textContent = data.sdsComponents.cp.toFixed(2);
+            document.getElementById('cwBar').style.width = `${data.sdsComponents.cw * 100}%`;
+
+            // Platform accuracy
+            document.getElementById('platSMS').textContent = `${(data.platformAccuracy.sms * 100).toFixed(1)}%`;
+            document.getElementById('platTelegram').textContent = `${(data.platformAccuracy.telegram * 100).toFixed(1)}%`;
+            document.getElementById('platEmail').textContent = `${(data.platformAccuracy.email * 100).toFixed(1)}%`;
+            document.getElementById('smsBar').style.width = `${data.platformAccuracy.sms * 100}%`;
+            document.getElementById('telegramBar').style.width = `${data.platformAccuracy.telegram * 100}%`;
+            document.getElementById('emailBar').style.width = `${data.platformAccuracy.email * 100}%`;
+
+            // Detailed results
+            const detailed = document.getElementById('batchDetailed');
+            detailed.innerHTML = `
+                <h4>📋 Detailed Results (${data.detailed.length} cases)</h4>
+                ${data.detailed.map(r => `
+                    <div class="result-item">
+                        <div class="result-icon ${r.correct ? 'pass' : 'fail'}">${r.correct ? '✓' : '✗'}</div>
+                        <div class="result-info">
+                            <div class="result-message">${escapeHtml(r.message)}</div>
+                            <div class="result-meta">
+                                Platform: ${r.platform.toUpperCase()} | 
+                                Expected: ${r.expected ? 'Sensitive' : 'Safe'} | 
+                                Detected: ${r.detected ? 'Sensitive' : 'Safe'}
+                            </div>
+                        </div>
+                        <span class="result-type ${r.resultType.toLowerCase()}">${r.resultType}</span>
+                    </div>
+                `).join('')}
+            `;
+
+            results.classList.add('active');
+            results.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function exportResults() {
+            if (!batchResults) return;
+
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                testCases: batchQueue,
+                results: batchResults
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sds_evaluation_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ============== Dataset Evaluation ==============
+        async function runDatasetEvaluation() {
+            const btn = document.getElementById('datasetBtn');
+            const loading = document.getElementById('datasetLoading');
+            const results = document.getElementById('datasetResults');
+
+            btn.disabled = true;
+            btn.textContent = 'Running...';
+            loading.style.display = 'block';
+            results.classList.remove('active');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/msds/evaluate`);
+                const data = await response.json();
+                
+                displayDatasetResults(data);
+
+            } catch (error) {
+                console.error('Error:', error);
+                results.innerHTML = `
+                    <div class="stat-card" style="border-color: #ff6b6b;">
+                        <h4 style="color: #ff6b6b;">Error</h4>
+                        <p>Failed to connect to the API. Make sure backend is running.</p>
+                        <p style="margin-top: 10px; color: #666;">Error: ${error.message}</p>
+                    </div>
+                `;
+                results.classList.add('active');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🚀 Run Dataset Evaluation';
+                loading.style.display = 'none';
+            }
+        }
+
+        function displayDatasetResults(data) {
+            const results = document.getElementById('datasetResults');
+            
+            const summary = data.summary || {};
+            const traditional = data.traditional_metrics || {};
+            const sdsComponents = data.msds_components || {};
+            const comparison = data.comparison || {};
+            const platformAccuracy = data.platform_accuracy || {};
+            const detailed = data.detailed_results || [];
+
+            results.innerHTML = `
+                <div class="score-comparison">
+                    <div class="score-box f1">
+                        <h4>Traditional F1 Score</h4>
+                        <div class="score-value">${((comparison.f1_score || 0) * 100).toFixed(1)}%</div>
+                    </div>
+                    <div class="score-box sds">
+                        <h4>SDS Score (Novel Metric)</h4>
+                        <div class="score-value">${((data.msds_score || 0) * 100).toFixed(1)}%</div>
+                    </div>
+                </div>
+
+                <div class="insight-box">
+                    <h4>💡 Research Insight</h4>
+                    <p>${comparison.msds_insight || 'No insight available'}</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>📊 Summary</h4>
+                        <div class="stat-row">
+                            <span class="stat-label">Total Tests</span>
+                            <span class="stat-value">${summary.total_tests || 0}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">True Positives</span>
+                            <span class="stat-value positive">${summary.true_positives || 0}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">True Negatives</span>
+                            <span class="stat-value positive">${summary.true_negatives || 0}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">False Positives</span>
+                            <span class="stat-value negative">${summary.false_positives || 0}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">False Negatives</span>
+                            <span class="stat-value negative">${summary.false_negatives || 0}</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h4>📈 Traditional Metrics</h4>
+                        <div class="stat-row">
+                            <span class="stat-label">Precision</span>
+                            <span class="stat-value">${((traditional.precision || 0) * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill yellow" style="width: ${(traditional.precision || 0) * 100}%"></div>
+                        </div>
+                        <div class="stat-row" style="margin-top: 10px;">
+                            <span class="stat-label">Recall</span>
+                            <span class="stat-value">${((traditional.recall || 0) * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill yellow" style="width: ${(traditional.recall || 0) * 100}%"></div>
+                        </div>
+                        <div class="stat-row" style="margin-top: 10px;">
+                            <span class="stat-label">Accuracy</span>
+                            <span class="stat-value">${((traditional.accuracy || 0) * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill yellow" style="width: ${(traditional.accuracy || 0) * 100}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h4>🎯 SDS Components</h4>
+                        <div class="stat-row">
+                            <span class="stat-label">Context Weight (Cw)</span>
+                            <span class="stat-value highlight">${(sdsComponents.context_weight || 0).toFixed(4)}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill blue" style="width: ${(sdsComponents.context_weight || 0) * 100}%"></div>
+                        </div>
+                        <div class="stat-row" style="margin-top: 10px;">
+                            <span class="stat-label">Platform Factor (Pf)</span>
+                            <span class="stat-value highlight">${(sdsComponents.platform_factor || 0).toFixed(4)}</span>
+                        </div>
+                        <div class="stat-row" style="margin-top: 10px;">
+                            <span class="stat-label">Context Penalty (Cp)</span>
+                            <span class="stat-value negative">${(sdsComponents.context_penalty || 0).toFixed(2)}</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h4>📱 Platform Accuracy</h4>
+                        <div class="stat-row">
+                            <span class="stat-label">SMS</span>
+                            <span class="stat-value">${((platformAccuracy.sms || 0) * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill green" style="width: ${(platformAccuracy.sms || 0) * 100}%"></div>
+                        </div>
+                        <div class="stat-row" style="margin-top: 10px;">
+                            <span class="stat-label">Telegram</span>
+                            <span class="stat-value">${((platformAccuracy.telegram || 0) * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill green" style="width: ${(platformAccuracy.telegram || 0) * 100}%"></div>
+                        </div>
+                        <div class="stat-row" style="margin-top: 10px;">
+                            <span class="stat-label">Email</span>
+                            <span class="stat-value">${((platformAccuracy.email || 0) * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill green" style="width: ${(platformAccuracy.email || 0) * 100}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detailed-results">
+                    <h4>📋 Detailed Results (${detailed.length} cases)</h4>
+                    ${detailed.map(r => `
+                        <div class="result-item">
+                            <div class="result-icon ${r.correct ? 'pass' : 'fail'}">${r.correct ? '✓' : '✗'}</div>
+                            <div class="result-info">
+                                <div class="result-message">${escapeHtml(r.message || '')}</div>
+                                <div class="result-meta">
+                                    Platform: ${(r.platform || 'N/A').toUpperCase()} | 
+                                    Expected: ${r.expected ? 'Sensitive' : 'Safe'} | 
+                                    Detected: ${r.detected ? 'Sensitive' : 'Safe'}
+                                </div>
+                            </div>
+                            <span class="result-type ${(r.result_type || '').toLowerCase()}">${r.result_type || 'N/A'}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            results.classList.add('active');
+            results.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Utility function
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize
+        renderBatchQueue();
+        updateBatchButtons();
+    </script>
+</body>
+</html>

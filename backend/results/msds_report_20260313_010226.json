@@ -1,0 +1,254 @@
+{
+  "summary": {
+    "total_tests": 25,
+    "true_positives": 13,
+    "true_negatives": 5,
+    "false_positives": 2,
+    "false_negatives": 5
+  },
+  "traditional_metrics": {
+    "precision": 0.8667,
+    "recall": 0.7222,
+    "f1_score": 0.7879,
+    "accuracy": 0.72
+  },
+  "msds_components": {
+    "context_weight": 0.8462,
+    "platform_factor": 1.08,
+    "context_penalty": 10.6
+  },
+  "msds_score": 0.3882,
+  "comparison": {
+    "f1_score": 0.7879,
+    "msds_score": 0.3882,
+    "difference": -0.3997,
+    "msds_insight": "MSDS is 0.40 lower - system has context/platform weaknesses"
+  },
+  "detailed_results": [
+    {
+      "message": "my pwd is Secret123",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "password: admin123!",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "ur pass is qwerty",
+      "platform": "sms",
+      "expected": true,
+      "detected": false,
+      "correct": false,
+      "category_match": false,
+      "result_type": "FN"
+    },
+    {
+      "message": "Your temporary password is TempPass@2024. Please c...",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "wifi password is HomeNetwork99",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "My card number is 4532-1234-5678-9012",
+      "platform": "sms",
+      "expected": true,
+      "detected": false,
+      "correct": false,
+      "category_match": false,
+      "result_type": "FN"
+    },
+    {
+      "message": "Use this card: 4532015112830366 exp 12/25 cvv 123",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Card ending in 9012 was charged $50",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "my bank acc is 1234567890",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TP"
+    },
+    {
+      "message": "Transfer to account: 9876543210123456",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Call me on 0771234567",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "My number is +94 77 123 4567",
+      "platform": "telegram",
+      "expected": true,
+      "detected": false,
+      "correct": false,
+      "category_match": false,
+      "result_type": "FN"
+    },
+    {
+      "message": "My NIC is 199912345678",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TP"
+    },
+    {
+      "message": "SSN: 123-45-6789",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Send it to john.doe@company.com",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Hey, what's up?",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Meeting at 5pm tomorrow",
+      "platform": "telegram",
+      "expected": false,
+      "detected": true,
+      "correct": false,
+      "category_match": false,
+      "result_type": "FP"
+    },
+    {
+      "message": "The password to success is hard work",
+      "platform": "email",
+      "expected": false,
+      "detected": true,
+      "correct": false,
+      "category_match": false,
+      "result_type": "FP"
+    },
+    {
+      "message": "Call me when you're free",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Your order number is 123456",
+      "platform": "email",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "PIN is 1234",
+      "platform": "sms",
+      "expected": true,
+      "detected": false,
+      "correct": false,
+      "category_match": false,
+      "result_type": "FN"
+    },
+    {
+      "message": "Room 1234 at the hotel",
+      "platform": "telegram",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "OTP is 456789",
+      "platform": "sms",
+      "expected": true,
+      "detected": false,
+      "correct": false,
+      "category_match": false,
+      "result_type": "FN"
+    },
+    {
+      "message": "Login with user admin@test.com and password Test@1...",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Card 4532111122223333 password xyz789",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    }
+  ]
+}

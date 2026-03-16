@@ -1,6 +1,17 @@
-// lib/screens/spam_check_screen.dart
-// ====================================
-// Screen to manually check messages for spam
+// =============================================================================
+// SPAM CHECK SCREEN
+// =============================================================================
+// Manual spam detection screen for checking suspicious messages.
+// Uses ML-based classifier to determine if a message is spam/phishing.
+//
+// Features:
+// - Multi-platform support (SMS, Email, Telegram)
+// - Risk level assessment (Low/Medium/High)
+// - Confidence scoring
+// - Visual result display
+//
+// Author: Umasha Wijenayake
+// =============================================================================
 
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
@@ -13,6 +24,9 @@ class SpamCheckScreen extends StatefulWidget {
 }
 
 class _SpamCheckScreenState extends State<SpamCheckScreen> {
+  // =============================================================================
+  // STATE VARIABLES
+  // =============================================================================
   final _messageController = TextEditingController();
   final _senderController = TextEditingController();
   String _selectedSource = 'sms';
@@ -20,20 +34,31 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
   Map<String, dynamic>? _result;
   String? _error;
 
+  // Available message sources with icons
   final _sources = [
     {'value': 'sms', 'label': 'SMS', 'icon': Icons.sms},
     {'value': 'email', 'label': 'Email', 'icon': Icons.email},
     {'value': 'telegram', 'label': 'Telegram', 'icon': Icons.telegram},
   ];
 
+  // =============================================================================
+  // SPAM CHECK METHOD
+  // =============================================================================
+  // Sends message to backend API for ML-based spam classification.
+  // Returns: is_spam, confidence, spam_probability, risk_level
+
   Future<void> _checkSpam() async {
+    // Validate input
     if (_messageController.text.trim().isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a message to check')),
       );
       return;
     }
 
+    // Set loading state
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _result = null;
@@ -41,6 +66,7 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
     });
 
     try {
+      // Call spam detection API
       final result = await ApiService.checkSpam(
         userId: 'default_user',
         message: _messageController.text,
@@ -49,11 +75,15 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
             _senderController.text.isNotEmpty ? _senderController.text : null,
       );
 
+      // Update state with result (check mounted after await)
+      if (!mounted) return;
       setState(() {
         _result = result;
         _isLoading = false;
       });
     } catch (e) {
+      // Handle error (check mounted after await)
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -61,12 +91,20 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
     }
   }
 
+  // =============================================================================
+  // LIFECYCLE METHODS
+  // =============================================================================
+
   @override
   void dispose() {
     _messageController.dispose();
     _senderController.dispose();
     super.dispose();
   }
+
+  // =============================================================================
+  // BUILD METHOD
+  // =============================================================================
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +117,7 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Source Selection
+            // =========== SOURCE SELECTION ===========
             const Text(
               'Message Source',
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -101,7 +139,7 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
 
             const SizedBox(height: 16),
 
-            // Sender Field
+            // =========== SENDER FIELD ===========
             TextField(
               controller: _senderController,
               decoration: const InputDecoration(
@@ -114,7 +152,7 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
 
             const SizedBox(height: 16),
 
-            // Message Field
+            // =========== MESSAGE FIELD ===========
             TextField(
               controller: _messageController,
               maxLines: 5,
@@ -129,7 +167,7 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
 
             const SizedBox(height: 24),
 
-            // Check Button
+            // =========== CHECK BUTTON ===========
             ElevatedButton(
               onPressed: _isLoading ? null : _checkSpam,
               style: ElevatedButton.styleFrom(
@@ -151,7 +189,7 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
 
             const SizedBox(height: 24),
 
-            // Results
+            // =========== ERROR DISPLAY ===========
             if (_error != null)
               Card(
                 color: Colors.red[50],
@@ -178,6 +216,7 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
                 ),
               ),
 
+            // =========== RESULT DISPLAY ===========
             if (_result != null) _buildResultCard(),
           ],
         ),
@@ -185,12 +224,19 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
     );
   }
 
+  // =============================================================================
+  // RESULT CARD BUILDER
+  // =============================================================================
+  // Displays spam detection results with visual indicators.
+  // Color-coded by risk level: Red (High), Orange (Medium), Green (Safe)
+
   Widget _buildResultCard() {
     final isSpam = _result!['is_spam'] ?? false;
     final confidence = (_result!['confidence'] ?? 0.0) * 100;
     final spamProbability = (_result!['spam_probability'] ?? 0.0) * 100;
     final riskLevel = _result!['risk_level'] ?? 'unknown';
 
+    // Determine visual styling based on result
     Color cardColor;
     IconData icon;
     String title;
@@ -223,7 +269,7 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
-          // Header
+          // =========== RESULT HEADER ===========
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -249,7 +295,7 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
             ),
           ),
 
-          // Details
+          // =========== RESULT DETAILS ===========
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -271,6 +317,11 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
     );
   }
 
+  // =============================================================================
+  // HELPER WIDGETS
+  // =============================================================================
+
+  /// Builds a single row in the result details section
   Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),

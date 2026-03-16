@@ -1,8 +1,20 @@
-// lib/screens/dashboard_screen.dart
-// ===================================
-// Main dashboard with navigation to all features (Updated with Secure Your Channels)
+// =============================================================================
+// DASHBOARD SCREEN
+// =============================================================================
+// Main dashboard with navigation to all Sifitlier features.
+// Displays security stats, quick actions, and feature grid.
+//
+// Features:
+// - Security overview (spam blocked, DLP warnings, total alerts)
+// - Quick action buttons for common tasks
+// - Secure channels integration (Gmail, Telegram)
+// - Feature grid for navigation
+//
+// Author: Umasha Wijenayake
+// =============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/api_service.dart';
 import 'spam_check_screen.dart';
 import 'dlp_check_screen.dart';
@@ -10,7 +22,7 @@ import 'logs_screen.dart';
 import 'handbook_screen.dart';
 import 'settings_screen.dart';
 import 'protection_screen.dart';
-import 'gmail_connect_screen.dart'; // Gmail OAuth integration
+import 'gmail_connect_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -20,9 +32,16 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  // =============================================================================
+  // STATE VARIABLES
+  // =============================================================================
   bool _isLoading = true;
   Map<String, dynamic>? _stats;
   String? _error;
+
+  // =============================================================================
+  // LIFECYCLE METHODS
+  // =============================================================================
 
   @override
   void initState() {
@@ -30,7 +49,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _loadStats();
   }
 
+  // =============================================================================
+  // DATA LOADING
+  // =============================================================================
+  // Fetches security statistics from the backend API
+
   Future<void> _loadStats() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _error = null;
@@ -38,17 +63,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       final stats = await ApiService.getStats(userId: 'default_user');
+
+      // Check mounted after await
+      if (!mounted) return;
       setState(() {
         _stats = stats;
         _isLoading = false;
       });
     } catch (e) {
+      // Check mounted after await
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;
       });
     }
   }
+
+  // =============================================================================
+  // BUILD METHOD
+  // =============================================================================
 
   @override
   Widget build(BuildContext context) {
@@ -73,12 +107,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Welcome Card
+              // =========== WELCOME CARD ===========
               _buildWelcomeCard(),
 
               const SizedBox(height: 24),
 
-              // Stats Section
+              // =========== STATS SECTION ===========
               const Text(
                 'Security Overview',
                 style: TextStyle(
@@ -91,7 +125,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const SizedBox(height: 24),
 
-              // Quick Actions
+              // =========== QUICK ACTIONS ===========
               const Text(
                 'Quick Actions',
                 style: TextStyle(
@@ -104,7 +138,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const SizedBox(height: 24),
 
-              // NEW: Secure Your Channels Section
+              // =========== SECURE CHANNELS ===========
               const Text(
                 'Secure Your Channels',
                 style: TextStyle(
@@ -117,7 +151,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const SizedBox(height: 24),
 
-              // Features Grid
+              // =========== FEATURES GRID ===========
               const Text(
                 'Features',
                 style: TextStyle(
@@ -133,6 +167,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+
+  // =============================================================================
+  // WELCOME CARD
+  // =============================================================================
+  // Displays app branding and welcome message
 
   Widget _buildWelcomeCard() {
     return Card(
@@ -179,7 +218,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // =============================================================================
+  // STATS SECTION
+  // =============================================================================
+  // Displays security statistics: spam blocked, DLP warnings, total alerts
+
   Widget _buildStatsSection() {
+    // Show loading indicator
     if (_isLoading) {
       return const Card(
         child: Padding(
@@ -189,6 +234,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
+    // Show error state with retry button
     if (_error != null) {
       return Card(
         child: Padding(
@@ -208,6 +254,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
+    // Extract stats from API response
     final spamDetected = _stats?['spam']?['detected'] ?? 0;
     final dlpWarnings = _stats?['dlp']?['with_sensitive_data'] ?? 0;
     final totalAlerts = _stats?['total_alerts'] ?? 0;
@@ -244,6 +291,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  /// Individual stat card widget
   Widget _buildStatCard(
       String title, String value, IconData icon, Color color) {
     return Card(
@@ -272,6 +320,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+
+  // =============================================================================
+  // QUICK ACTIONS
+  // =============================================================================
+  // Buttons for frequently used features: Spam Check, DLP Check, Real-Time Protection
 
   Widget _buildQuickActions() {
     return Column(
@@ -334,7 +387,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// NEW: Secure Your Channels Card with Gmail and Telegram options
+  // =============================================================================
+  // SECURE CHANNELS CARD
+  // =============================================================================
+  // Integration buttons for Gmail and Telegram protection
+
   Widget _buildSecureChannelsCard() {
     return Card(
       elevation: 2,
@@ -344,7 +401,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
+            // =========== HEADER ===========
             Row(
               children: [
                 Container(
@@ -383,7 +440,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             const SizedBox(height: 16),
 
-            // Channel Buttons
+            // =========== CHANNEL BUTTONS ===========
             Row(
               children: [
                 // Gmail Button
@@ -401,14 +458,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Telegram Button
+                // Telegram Button - Opens Sifitlier Bot
                 Expanded(
                   child: _buildChannelButton(
                     label: 'Secure Telegram',
                     icon: Icons.telegram,
                     iconColor: Colors.blue,
                     backgroundColor: Colors.blue.withOpacity(0.1),
-                    onTap: () => _showTelegramComingSoon(),
+                    onTap: () => _showTelegramDialog(),
                   ),
                 ),
               ],
@@ -459,8 +516,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// Show coming soon dialog for Telegram
-  void _showTelegramComingSoon() {
+  // =============================================================================
+  // TELEGRAM BOT INTEGRATION
+  // =============================================================================
+  // Opens Sifitlier Telegram bot for real-time message protection
+
+  /// Opens the Telegram bot using url_launcher
+  Future<void> _openTelegramBot() async {
+    final Uri telegramUrl = Uri.parse('https://t.me/SifitlierSecurityBot');
+
+    try {
+      if (await canLaunchUrl(telegramUrl)) {
+        await launchUrl(
+          telegramUrl,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        // Fallback: Show snackbar if can't open
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Could not open Telegram. Search for @SifitlierSecurityBot in Telegram.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  /// Shows dialog with Telegram bot information
+  void _showTelegramDialog() {
+    if (!mounted) return;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -479,7 +575,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Telegram Integration',
+              'Telegram Protection',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -487,34 +583,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Telegram bot integration is coming soon! This feature will allow you to scan messages directly through our Telegram bot.',
+              'Chat with our Telegram bot for real-time spam and sensitive data protection.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.grey,
                 fontSize: 13,
               ),
             ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text(
+                '@SifitlierSecurityBot',
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
           ],
         ),
         actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
               ),
-              child: const Text('Got it!'),
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _openTelegramBot();
+                  },
+                  icon: const Icon(Icons.open_in_new, size: 18),
+                  label: const Text('Open Bot'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       ),
     );
   }
+
+  // =============================================================================
+  // FEATURES GRID
+  // =============================================================================
+  // Grid of all app features with navigation
 
   Widget _buildFeaturesGrid() {
     final features = [
@@ -588,6 +720,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  /// Individual feature card widget
   Widget _buildFeatureCard({
     required String title,
     required String subtitle,

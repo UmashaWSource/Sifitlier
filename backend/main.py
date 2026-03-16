@@ -638,3 +638,87 @@ if __name__ == "__main__":
         port=8000,
         reload=True
     )
+
+#============== MSDS ROUTES ==============(12-03-2026)
+
+@app.get("/api/v1/msds/evaluate")
+async def evaluate_msds():
+    """Run MSDS evaluation and return results"""
+    try:
+        from msds_evaluator import MSDSEvaluator, DetectionResult
+        from msds_test_dataset import get_test_dataset, get_platform_distribution
+        
+        evaluator = MSDSEvaluator()
+        test_dataset = get_test_dataset()
+        
+        for test_case in test_dataset:
+            dlp_result = dlp_detector.analyze(test_case.message)
+            detection = DetectionResult(
+                detected_sensitive=dlp_result['has_sensitive_data'],
+                detected_categories=dlp_result.get('categories', []),
+                sensitivity_level=dlp_result.get('sensitivity_level', 'none')
+            )
+            evaluator.evaluate_single(test_case, detection)
+        
+        platform_dist = get_platform_distribution()
+        report = evaluator.generate_report(platform_dist)
+        return report
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"MSDS evaluation failed: {str(e)}")
+
+
+@app.get("/api/v1/msds/info")
+async def msds_info():
+    """Return MSDS metric information"""
+    return {
+        "name": "MSDS - Mobile Sensitivity Detection Score",
+        "formula": "MSDS = (TP × Cw × Pf) / (TP + FP + FN + Cp)",
+        "author": "Umasha Wijenayake"
+    }
+
+
+@app.get("/msds")
+async def msds_console():
+    """Serve the MSDS web console"""
+    from fastapi.responses import FileResponse
+    import os
+    console_path = os.path.join(os.path.dirname(__file__), "msds_console.html")
+    if os.path.exists(console_path):
+        return FileResponse(console_path, media_type="text/html")
+    raise HTTPException(status_code=404, detail="MSDS console not found")
+
+# ============== SIMPLE ENDPOINTS FOR WEB CONSOLE ==============
+
+class SimpleCheckRequest(BaseModel):
+    message: str
+
+@app.post("/api/v1/spam/simple-check")
+async def simple_spam_check(request: SimpleCheckRequest):
+    """Simple spam check without user_id (for web console)"""
+    if not spam_classifier or not spam_classifier.pipeline:
+        raise HTTPException(status_code=503, detail="Spam classifier not available")
+    
+    result = spam_classifier.predict(request.message)
+    return {
+        "is_spam": result['is_spam'],
+        "label": result['label'],
+        "confidence": result['confidence'],
+        "spam_probability": result['spam_probability'],
+        "risk_level": result['risk_level']
+    }
+
+@app.post("/api/v1/dlp/simple-check")
+async def simple_dlp_check(request: SimpleCheckRequest):
+    """Simple DLP check without user_id (for web console)"""
+    if not dlp_detector:
+        raise HTTPException(status_code=503, detail="DLP detector not available")
+    
+    result = dlp_detector.analyze(request.message)
+    return {
+        "has_sensitive_data": result['has_sensitive_data'],
+        "sensitivity_level": result['sensitivity_level'],
+        "total_matches": result['total_matches'],
+        "categories": result['categories'],
+        "recommendation": result['recommendation']
+    }

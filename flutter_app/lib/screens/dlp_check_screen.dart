@@ -1,6 +1,5 @@
 // lib/screens/dlp_check_screen.dart
 // ===================================
-// REDESIGNED: Outgoing Message Guard
 // Checks messages BEFORE sending and asks user to confirm or cancel
 // Logs user decisions (proceed/cancel)
 
@@ -33,12 +32,14 @@ class _DLPCheckScreenState extends State<DLPCheckScreen> {
 
   Future<void> _checkBeforeSending() async {
     if (_messageController.text.trim().isEmpty) {
+      if (!mounted) return; // ADD: Check mounted before showing SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your message')),
       );
       return;
     }
 
+    if (!mounted) return; // ADD: Check mounted
     setState(() {
       _isLoading = true;
       _result = null;
@@ -55,6 +56,8 @@ class _DLPCheckScreenState extends State<DLPCheckScreen> {
             : null,
       );
 
+      if (!mounted) return; // ADD: Check mounted after await
+
       setState(() {
         _result = result;
         _isLoading = false;
@@ -68,6 +71,7 @@ class _DLPCheckScreenState extends State<DLPCheckScreen> {
         _showSafeDialog();
       }
     } catch (e) {
+      if (!mounted) return; // ADD: Check mounted after await
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -77,6 +81,8 @@ class _DLPCheckScreenState extends State<DLPCheckScreen> {
 
   /// Show warning dialog when sensitive data is detected
   void _showWarningDialog(Map<String, dynamic> result) {
+    if (!mounted) return; // ADD: Check mounted
+
     final sensitivityLevel = result['sensitivity_level'] ?? 'medium';
     final categories = List<String>.from(result['categories'] ?? []);
     final totalMatches = result['total_matches'] ?? 0;
@@ -228,53 +234,57 @@ class _DLPCheckScreenState extends State<DLPCheckScreen> {
           ],
         ),
         actions: [
-          // Cancel Button
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                _logDecision(
-                  action: 'cancelled',
-                  sensitivityLevel: sensitivityLevel,
-                  categories: categories,
-                );
-                _showDecisionConfirmation(false);
-              },
-              icon: const Icon(Icons.cancel, color: Colors.green),
-              label: const Text(
-                'Cancel Send',
-                style: TextStyle(color: Colors.green),
+          // Wrap buttons in Row to use Expanded properly
+          Row(
+            children: [
+              // Cancel Button
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _logDecision(
+                      action: 'cancelled',
+                      sensitivityLevel: sensitivityLevel,
+                      categories: categories,
+                    );
+                    _showDecisionConfirmation(false);
+                  },
+                  icon: const Icon(Icons.cancel, color: Colors.green),
+                  label: const Text(
+                    'Cancel Send',
+                    style: TextStyle(color: Colors.green),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    side: const BorderSide(color: Colors.green),
+                  ),
+                ),
               ),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                side: const BorderSide(color: Colors.green),
+              const SizedBox(width: 8),
+              // Proceed Button
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _logDecision(
+                      action: 'proceeded',
+                      sensitivityLevel: sensitivityLevel,
+                      categories: categories,
+                    );
+                    _showDecisionConfirmation(true);
+                  },
+                  icon: const Icon(Icons.send),
+                  label: const Text('Send Anyway'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Proceed Button
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                _logDecision(
-                  action: 'proceeded',
-                  sensitivityLevel: sensitivityLevel,
-                  categories: categories,
-                );
-                _showDecisionConfirmation(true);
-              },
-              icon: const Icon(Icons.send),
-              label: const Text('Send Anyway'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
+            ],
           ),
         ],
-        actionsAlignment: MainAxisAlignment.spaceEvenly,
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       ),
     );
@@ -282,6 +292,8 @@ class _DLPCheckScreenState extends State<DLPCheckScreen> {
 
   /// Show safe to send dialog
   void _showSafeDialog() {
+    if (!mounted) return; // ADD: Check mounted
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -336,6 +348,8 @@ class _DLPCheckScreenState extends State<DLPCheckScreen> {
 
   /// Show confirmation after user makes a decision
   void _showDecisionConfirmation(bool proceeded) {
+    if (!mounted) return; // ADD: Check mounted
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -372,6 +386,7 @@ class _DLPCheckScreenState extends State<DLPCheckScreen> {
     };
 
     // Add to local log
+    if (!mounted) return; // ADD: Check mounted
     setState(() {
       _decisionLog.insert(0, logEntry);
     });
@@ -712,6 +727,8 @@ class _DLPCheckScreenState extends State<DLPCheckScreen> {
   }
 
   void _showDecisionHistory() {
+    if (!mounted) return; // ADD: Check mounted
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

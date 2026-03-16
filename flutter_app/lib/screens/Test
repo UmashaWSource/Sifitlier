@@ -1,0 +1,41 @@
+Algorithm 1  Spam Detection Classification Procedure
+
+Require: Input message M, Trained pipeline P (TF-IDF Vectorizer + MNB Classifier),
+         Confidence threshold θ (default = 0.7)
+Ensure:  Classification result R with label, confidence score, and risk level
+
+ 1:  function CLASSIFY_SPAM(M, P, θ)
+ 2:      T ← ConvertToLowercase(M)
+ 3:      T ← RemovePunctuation(T)
+ 4:      T ← RemoveSpecialCharacters(T)
+ 5:      tokens ← Tokenize(T)
+ 6:      tokens ← RemoveStopWords(tokens)
+ 7:      tokens ← ApplyStemming(tokens)
+ 8:      T_processed ← JoinTokens(tokens)
+ 9:      V ← TF-IDF_Transform(T_processed, P.vectorizer)
+10:      P_spam ← P.classifier.predict_proba(V)[spam]
+11:      P_ham  ← P.classifier.predict_proba(V)[ham]
+12:      confidence ← max(P_spam, P_ham)
+13:      if P_spam > P_ham then
+14:          label ← "SPAM"
+15:      else
+16:          label ← "HAM"
+17:      end if
+18:      if label = "SPAM" and confidence ≥ θ then
+19:          if confidence ≥ 0.9 then
+20:              risk_level ← "CRITICAL"
+21:          else if confidence ≥ 0.8 then
+22:              risk_level ← "HIGH"
+23:          else
+24:              risk_level ← "MEDIUM"
+25:          end if
+26:          GenerateAlert(label, confidence, risk_level)
+27:      else if label = "SPAM" and confidence < θ then
+28:          risk_level ← "LOW"
+29:          LogAsLowConfidence(label, confidence)
+30:      else
+31:          risk_level ← "NONE"
+32:      end if
+33:      R ← {label, confidence, risk_level}
+34:      return R
+35:  end function

@@ -1,69 +1,90 @@
-# -----------------------
-# SECRETS (CRITICAL)
-# -----------------------
-backend/firebase-credentials.json
-flutter_app/android/app/google-services.json
-flutter_app/ios/Runner/GoogleService-Info.plist
-.env
+# ===============================================================
+# SIFITLIER PROJECT - MASTER GITIGNORE
+# ===============================================================
 
-# -----------------------
-# DATABASE
-# -----------------------
-*.db
-*.sqlite
-*.sqlite3
+# ---------------------------------------------------------------
+# SECRETS & CREDENTIALS (CRITICAL SECURITY)
+# Prevents API keys, tokens, and service accounts from leaking.
+# ---------------------------------------------------------------
+.env                # Local environment variables (Telegram tokens, etc.)
+*.env               # All variations of environment files
+.env.*              # Local, production, or backup env files
+backend/.env        # Specifically ignore env inside backend folder
+backend/firebase-credentials.json                # Firebase Admin SDK keys
+flutter_app/android/app/google-services.json     # Android Firebase config
+flutter_app/ios/Runner/GoogleService-Info.plist  # iOS Firebase config
+firebase-credentials.json                        # Root level Firebase keys
+*-firebase-adminsdk-*.json                       # Wildcard for any Firebase JSON
 
-# -----------------------
-# PYTHON / BACKEND
-# -----------------------
-__pycache__/
-*.py[cod]
-*$py.class
-backend/venv/
-backend/env/
-*.pkl
-*.joblib
-# Keep  CSVs only if required, or uncomment below to ignore them:
-# *.csv
+# ---------------------------------------------------------------
+# DATABASE & LOCAL STORAGE
+# Prevents local test data and user databases from being committed.
+# ---------------------------------------------------------------
+*.db                # General SQLite databases
+*.sqlite            # SQLite database files
+*.sqlite3           # SQLite3 database files
+sifitlier.db        # The specific main project database
 
-# -----------------------
-# FLUTTER (General)
-# -----------------------
-**/.dart_tool/
-**/.flutter-plugins
+# ---------------------------------------------------------------
+# PYTHON / BACKEND (VIRTUAL ENV & CACHE)
+# Keeps the repository clean of compiled code and local libraries.
+# ---------------------------------------------------------------
+__pycache__/        # Python bytecode cache (improves execution speed)
+*.py[cod]           # Compiled Python files
+*$py.class          # Compiled Python classes
+venv/               # Standard Python virtual environment
+env/                # Alternative virtual environment name
+.venv/              # Hidden virtual environment folder
+backend/venv/       # Virtual env inside backend directory
+backend/env/        # Alternative env inside backend
+results/            # Folder for local test/experiment outputs
+logs/               # Local log files
+*.log               # Individual log files
+
+# ---------------------------------------------------------------
+# MACHINE LEARNING MODELS
+# Note: spam_classifier_pipeline.pkl is UNIGNORED to ensure the 
+# system works immediately upon handover.
+# ---------------------------------------------------------------
+# *.pkl             # Commented out to allow the .pkl model to be pushed
+# *.joblib          # Commented out to allow Joblib models if used
+
+# ---------------------------------------------------------------
+# FLUTTER & DART (DEPENDENCIES & BUILD)
+# Ignores auto-generated files created during 'flutter pub get'.
+# ---------------------------------------------------------------
+**/.dart_tool/      # Flutter tool metadata
+**/.flutter-plugins # Plugin configuration tracking
 **/.flutter-plugins-dependencies
-**/.packages
-**/.pub-cache/
-**/.pub/
-# Ignore "build" folder anywhere (covers flutter_app/build/)
-build/
-**/build/
+**/.packages        # Maps package names to local paths
+**/.pub-cache/      # Global package cache
+**/.pub/            # Local pub metadata
+build/              # Root build folder
+**/build/           # Build folders in subdirectories
+flutter_app/build/  # Specifically ignore mobile app build output
 
-# -----------------------
-# ANDROID SPECIFIC
-# -----------------------
-**/.gradle/
-**/local.properties
-**/*.apk
-**/*.ap_
-**/*.dex
+# ---------------------------------------------------------------
+# MOBILE SPECIFIC (ANDROID & IOS)
+# Ignores large binary files, Gradle cache, and local properties.
+# ---------------------------------------------------------------
+**/.gradle/                      # Android build tool cache
+**/local.properties              # Local SDK paths (unique to your laptop)
+**/*.apk                         # Android Package files (Debug/Release)
+**/*.aab                         # Android App Bundles
+**/*.dex                         # Dalvik Executable files
+flutter_app/android/app/debug/   # Local debug build files
+flutter_app/android/app/release/ # Local release build files
+**/ios/Pods/                     # iOS dependency manager folder
+**/ios/.symlinks/                # iOS plugin links
 
-# -----------------------
-# IOS SPECIFIC
-# -----------------------
-**/ios/.generated/
-**/ios/Flutter/Generated.xcconfig
-**/ios/Flutter/app.flx
-**/ios/Flutter/gen_snapshot/
-**/ios/ServiceDefinitions.json
-**/ios/Runner/GeneratedPluginRegistrant.h
-**/ios/Runner/GeneratedPluginRegistrant.m
-
-# -----------------------
-# IDE / EDITOR
-# -----------------------
-.vscode/
-.idea/
-*.iml
-*.swp
-.DS_Store
+# ---------------------------------------------------------------
+# IDE, EDITORS & OS FILES
+# Removes settings specific to your VS Code or Windows/Mac OS.
+# ---------------------------------------------------------------
+.vscode/            # VS Code workspace settings
+.idea/              # IntelliJ/Android Studio settings
+*.iml               # Project module files
+.DS_Store           # macOS directory metadata
+Thumbs.db           # Windows thumbnail cache
+*.bak               # Backup files created by editors
+*.tmp               # Temporary files

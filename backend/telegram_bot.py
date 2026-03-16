@@ -5,24 +5,51 @@ Developed by Umasha Wijenayake
 """
 
 import os
+import sys
 import asyncio
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
-# Import your existing detectors
-from train_spam_classifier import SpamClassifier
-from dlp_detector import DLPDetector
+# ================================================================================
+# ENVIRONMENT CONFIGURATION
+# ================================================================================
+# Load environment variables from .env file for secure token management
+# This prevents hardcoding sensitive data in the source code
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv not installed, will use system env vars
 
-# Setup logging
+# Import detectors
+from train_spam_classifier import SpamClassifier  # ML-based spam detection
+from dlp_detector import DLPDetector              # Regex-based sensitive data detection
+
+# ================================================================================
+# LOGGING CONFIGURATION
+# ================================================================================
+# Set up logging to track bot activity and debug issues
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# Bot token
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8690155156:AAE9RUEgVLWjFLr3XJWLffhKH3IGkbElbmA")
+# ================================================================================
+# BOT TOKEN CONFIGURATION
+# ================================================================================
+# SECURITY: Token is loaded from environment variable, NOT hardcoded
+# This allows safe pushing to GitHub without exposing credentials
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+
+# Validate token exists before starting
+if not BOT_TOKEN:
+    logger.error("❌ ERROR: TELEGRAM_BOT_TOKEN not set!")
+    logger.error("Please set the token using one of these methods:")
+    logger.error("  1. Create a .env file with: TELEGRAM_BOT_TOKEN=your_token_here")
+    logger.error("  2. Set environment variable: export TELEGRAM_BOT_TOKEN=your_token_here")
+    sys.exit(1)
 
 # Initialize ML models
 spam_classifier = SpamClassifier()
@@ -40,8 +67,10 @@ else:
     logger.warning("⚠️ Spam model not found for Telegram bot")
 
 
-# ============== Command Handlers ==============
-
+# ================================================================================
+# COMMAND HANDLERS
+# ================================================================================
+# These functions handle specific bot commands (e.g., /start, /help)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Send welcome message when /start is issued"""
     welcome_text = (
@@ -152,7 +181,10 @@ async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# ============== Scan Handlers ==============
+# ================================================================================
+# SCAN COMMAND HANDLERS
+# ================================================================================
+# These functions handle the /spam and /dlp scanning commands
 
 async def check_spam_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Check message for spam using /spam command"""
@@ -361,5 +393,9 @@ def run_bot():
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
+# ================================================================================
+# SCRIPT EXECUTION
+# ================================================================================
+# Only run the bot if this file is executed directly (not imported)
 if __name__ == "__main__":
     run_bot()

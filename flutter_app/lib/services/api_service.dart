@@ -7,16 +7,15 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // For Android Emulator (localhost):
-  // static const String baseUrl = 'http://10.0.2.2:8000';
+  static const String baseUrl = 'http://10.0.2.2:8000';
 
   // For Physical Device (use your computer's IP):
   // static const String baseUrl = 'http://172.18.48.1:8000';
 
-  // Default: Android Emulator
+// For Production (update with actual backend URL):
   //static const String baseUrl = 'http://10.0.2.2:8000'; local host (version 2.0)
   //static const String baseUrl ='https://sifitlier.onrender.com'; //version 3.0 with render.com deployment
-  static const String baseUrl =
-      'https://sifitlier.onrender.com'; // Production URL (update with actual backend URL)
+  //static const String baseUrl =  'https://sifitlier.onrender.com'; // Production URL (update with actual backend URL)
 
   // ============================================================
   // SPAM DETECTION
