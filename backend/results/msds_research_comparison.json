@@ -1,0 +1,72 @@
+{
+  "experiment_date": "2026-03-20T00:09:06.505300",
+  "experiment_type": "MSDS vs Traditional Metrics Comparison",
+  "per_set_results": [
+    {
+      "set_name": "email_formal",
+      "total": 12,
+      "tp": 8,
+      "tn": 4,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0,
+      "msds": 0.9,
+      "context_weight": 1.0,
+      "platform_factor": 0.9,
+      "context_penalty": 0.0
+    },
+    {
+      "set_name": "sms_casual",
+      "total": 12,
+      "tp": 8,
+      "tn": 4,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0,
+      "msds": 1.2,
+      "context_weight": 1.0,
+      "platform_factor": 1.2,
+      "context_penalty": 0.0
+    },
+    {
+      "set_name": "telegram_adversarial",
+      "total": 12,
+      "tp": 3,
+      "tn": 6,
+      "fp": 2,
+      "fn": 1,
+      "precision": 0.6,
+      "recall": 0.75,
+      "f1": 0.6667,
+      "accuracy": 0.75,
+      "msds": 0.3333,
+      "context_weight": 1.0,
+      "platform_factor": 1.0,
+      "context_penalty": 3.0
+    }
+  ],
+  "latency_comparison": {
+    "messages_tested": 100,
+    "local_avg_ms": 0.082,
+    "cloud_avg_ms": 150,
+    "speedup": 1822.6,
+    "local_total_ms": 8.2
+  },
+  "research_contribution": {
+    "metric_name": "MSDS - Mobile Sensitivity Detection Score",
+    "formula": "MSDS = (TP * Cw * Pf) / (TP + FP + FN + Cp)",
+    "advantages_over_f1": [
+      "Captures platform-specific difficulty (SMS harder than email)",
+      "Penalizes missing critical data more than missing low-sensitivity data",
+      "Rewards correct category identification, not just binary detection",
+      "Provides actionable insights: which platform needs improvement"
+    ],
+    "author": "Umasha Wijenayake"
+  }
+}

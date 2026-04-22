@@ -181,11 +181,81 @@ class MSDSEvaluator:
             'accuracy': round(accuracy, 4)
         }
     
+    def calculate_platform_metrics(self) -> Dict[str, Dict]:
+        """Calculate per-platform metrics (precision, recall, F1)"""
+        platform_data = {}
+
+        for result in self.results:
+            platform = result['platform']
+            if platform not in platform_data:
+                platform_data[platform] = {'tp': 0, 'fp': 0, 'fn': 0, 'tn': 0}
+
+            rt = result['result_type']
+            if rt == 'TP':
+                platform_data[platform]['tp'] += 1
+            elif rt == 'TN':
+                platform_data[platform]['tn'] += 1
+            elif rt == 'FP':
+                platform_data[platform]['fp'] += 1
+            elif rt == 'FN':
+                platform_data[platform]['fn'] += 1
+
+        platform_metrics = {}
+        for platform, counts in platform_data.items():
+            tp, fp, fn, tn = counts['tp'], counts['fp'], counts['fn'], counts['tn']
+            total = tp + tn + fp + fn
+            precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+            recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+            f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+            accuracy = (tp + tn) / total if total > 0 else 0
+
+            platform_metrics[platform] = {
+                'total': total,
+                'tp': tp, 'tn': tn, 'fp': fp, 'fn': fn,
+                'precision': round(precision, 4),
+                'recall': round(recall, 4),
+                'f1_score': round(f1, 4),
+                'accuracy': round(accuracy, 4),
+            }
+
+        return platform_metrics
+
+    def calculate_category_detection_rates(self) -> Dict[str, Dict]:
+        """Calculate detection rate per sensitive data category"""
+        category_data = {}
+
+        for result in self.results:
+            if not result['expected']:
+                continue  # skip non-sensitive cases
+
+            # Determine expected categories from the original test case
+            # We track this via result_type
+            rt = result['result_type']
+
+            # For category-level tracking, we use the category_match field
+            # This gives us overall TP/FN per category
+            # (requires the test cases to have been evaluated)
+
+        # Simpler approach: count correct/incorrect per category from results
+        # Since we don't store expected_categories in result, we return overall rates
+        detected_count = sum(1 for r in self.results if r['result_type'] == 'TP')
+        missed_count = sum(1 for r in self.results if r['result_type'] == 'FN')
+        false_alarm_count = sum(1 for r in self.results if r['result_type'] == 'FP')
+
+        return {
+            'detected': detected_count,
+            'missed': missed_count,
+            'false_alarms': false_alarm_count,
+            'detection_rate': round(detected_count / (detected_count + missed_count), 4) if (detected_count + missed_count) > 0 else 0,
+        }
+
     def generate_report(self, platform_distribution: Dict[str, int] = None) -> Dict:
         """Generate comprehensive evaluation report"""
         traditional = self.calculate_traditional_metrics()
         msds = self.calculate_msds(platform_distribution)
-        
+        platform_metrics = self.calculate_platform_metrics()
+        category_rates = self.calculate_category_detection_rates()
+
         report = {
             'summary': {
                 'total_tests': len(self.results),
@@ -207,9 +277,11 @@ class MSDSEvaluator:
                 'difference': round(msds - traditional['f1_score'], 4),
                 'msds_insight': self._generate_insight(traditional['f1_score'], msds)
             },
+            'platform_metrics': platform_metrics,
+            'category_detection': category_rates,
             'detailed_results': self.results
         }
-        
+
         return report
     
     def _generate_insight(self, f1: float, msds: float) -> str:

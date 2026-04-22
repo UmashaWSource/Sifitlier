@@ -74,7 +74,19 @@ def run_experiment():
     print(f"   Context Weight (Cw):   {report['msds_components']['context_weight']}")
     print(f"   Platform Factor (Pf):  {report['msds_components']['platform_factor']}")
     print(f"   Context Penalty (Cp):  {report['msds_components']['context_penalty']}")
-    
+
+    # Per-platform breakdown
+    print(f"\n📱 Per-Platform Metrics:")
+    print(f"   {'Platform':<12} {'Accuracy':>10} {'Precision':>10} {'Recall':>10} {'F1':>10} {'Tests':>6}")
+    print(f"   {'-'*60}")
+    for platform, metrics in report.get('platform_metrics', {}).items():
+        print(f"   {platform:<12} "
+              f"{metrics['accuracy']:>8.4f}  "
+              f"{metrics['precision']:>8.4f}  "
+              f"{metrics['recall']:>8.4f}  "
+              f"{metrics['f1_score']:>8.4f}  "
+              f"{metrics['total']:>4}")
+
     print(f"\n" + "="*60)
     print(f"🏆 FINAL SCORES")
     print(f"="*60)

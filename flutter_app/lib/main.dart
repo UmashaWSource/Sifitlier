@@ -4,9 +4,14 @@
 
 import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
+import 'services/local_inference_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize local AI models (loads on-device spam classifier + DLP)
+  await LocalInferenceService().initialize();
+
   runApp(const SifitlierApp());
 }
 

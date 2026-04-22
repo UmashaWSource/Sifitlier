@@ -16,6 +16,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/api_service.dart';
+import '../services/local_inference_service.dart';
 import 'spam_check_screen.dart';
 import 'dlp_check_screen.dart';
 import 'logs_screen.dart';
@@ -62,7 +63,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     try {
-      final stats = await ApiService.getStats(userId: 'default_user');
+      final stats =
+          await ApiService.getStats(userId: LocalInferenceService().userId);
 
       // Check mounted after await
       if (!mounted) return;
@@ -187,7 +189,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.shield, size: 48, color: Colors.white),
+            // Sifitlier logo
+            Image.asset(
+              'assets/images/logo.png',
+              width: 48,
+              height: 48,
+              // Adding an errorBuilder ,if the image is missing to prevent crashes and show a placeholder icon instead
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(Icons.shield, size: 48, color: Colors.white);
+              },
+            ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -217,7 +228,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
   // =============================================================================
   // STATS SECTION
   // =============================================================================
@@ -523,7 +533,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   /// Opens the Telegram bot using url_launcher
   Future<void> _openTelegramBot() async {
-    final Uri telegramUrl = Uri.parse('https://t.me/SifitlierSecurityBot');
+    final Uri telegramUrl = Uri.parse('https://t.me/Sifitlier_bot');
 
     try {
       if (await canLaunchUrl(telegramUrl)) {

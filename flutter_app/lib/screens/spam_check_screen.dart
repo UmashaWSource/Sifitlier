@@ -14,7 +14,7 @@
 // =============================================================================
 
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import '../services/local_inference_service.dart';
 
 class SpamCheckScreen extends StatefulWidget {
   const SpamCheckScreen({super.key});
@@ -66,9 +66,8 @@ class _SpamCheckScreenState extends State<SpamCheckScreen> {
     });
 
     try {
-      // Call spam detection API
-      final result = await ApiService.checkSpam(
-        userId: 'default_user',
+      // Local inference — works offline, no server needed
+      final result = await LocalInferenceService().checkSpam(
         message: _messageController.text,
         source: _selectedSource,
         sender:

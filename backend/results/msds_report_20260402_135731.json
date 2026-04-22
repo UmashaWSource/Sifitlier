@@ -1,0 +1,1105 @@
+{
+  "summary": {
+    "total_tests": 115,
+    "true_positives": 78,
+    "true_negatives": 37,
+    "false_positives": 0,
+    "false_negatives": 0
+  },
+  "traditional_metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "accuracy": 1.0
+  },
+  "msds_components": {
+    "context_weight": 1.0,
+    "platform_factor": 1.0565,
+    "context_penalty": 0.0
+  },
+  "msds_score": 1.0565,
+  "comparison": {
+    "f1_score": 1.0,
+    "msds_score": 1.0565,
+    "difference": 0.0565,
+    "msds_insight": "MSDS is 0.06 higher - system excels at context-aware detection"
+  },
+  "platform_metrics": {
+    "sms": {
+      "total": 50,
+      "tp": 34,
+      "tn": 16,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "accuracy": 1.0
+    },
+    "email": {
+      "total": 35,
+      "tp": 25,
+      "tn": 10,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "accuracy": 1.0
+    },
+    "telegram": {
+      "total": 30,
+      "tp": 19,
+      "tn": 11,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "accuracy": 1.0
+    }
+  },
+  "category_detection": {
+    "detected": 78,
+    "missed": 0,
+    "false_alarms": 0,
+    "detection_rate": 1.0
+  },
+  "detailed_results": [
+    {
+      "message": "my pwd is Secret123",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "password: admin123!",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "ur pass is qwerty",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "my pass is dragon99",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "password= Test@2024",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Your temporary password is TempPass@2024. Please c...",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Dear user, your new password: Xy7!mN2k. Do not sha...",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "passwd: sysadmin2024! for the server access",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "wifi password is HomeNetwork99",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "the router pwd is admin1234",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "password is MySecret123",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "My card number is 4532015112830366",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Use this card: 4532015112830366 exp 12/25 cvv 123",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Visa ending 4539578763621486 charged for your orde...",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "MasterCard: 5425233430109903",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Please use card 4916338506082832 for the payment",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Card ending in 9012 was charged $50",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Transfer to account: 9876543210123456",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Account number: 12345678901234",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "IBAN: GB82WEST12345698765432",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Send to acct 98765432101234",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "My bank acc number is 0012345678901",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Call me on 0771234567",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "My number is +94 77 123 4567",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Contact us at 0712345678",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Whatsapp me at +94771234567",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Call (555) 123-4567 for details",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "My cell is 555-867-5309",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Reach me at +44 20 7946 0958",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "My NIC is 901234567V",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "NIC: 876543210X",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "My NIC is 199912345678",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "National ID: 200012345678",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "SSN: 123-45-6789",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "My social security is 987-65-4321",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "My NRIC is S1234567D",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Send it to john.doe@company.com",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Contact support at help@sifitlier.com for assistan...",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Login with user admin@test.com and password Test@1...",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "PIN is 1234",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "OTP is 456789",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Your verification code is 847291",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Your one-time password is 123456. Do not share.",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "PIN: 5678",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Your OTP: 982134",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "CVV is 321",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Security code: 4567",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "API key: sk-1234567890abcdefghijklmnop",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Use secret_key= abcdefghijklmnopqrstuvwx for auth",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Bearer eyJhbGciOiJIUzI1NiIsInR5c",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "DOB: 15/03/1995",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Date of birth is 01-15-1990",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Patient ID: MRN783921 admitted today",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Diagnosis: Type 2 Diabetes",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Server IP is 192.168.1.100",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Card 4532015112830366 password xyz789!",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Send to john@example.com, password is Pass@2024",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Call +94 77 123 4567, PIN is 4321",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "NIC 901234567V, account 12345678901234",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Hey, what's up?",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Meeting at 5pm tomorrow",
+      "platform": "telegram",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "The password to success is hard work",
+      "platform": "email",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Call me when you're free",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Your order number is 123456",
+      "platform": "email",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Room 1234 at the hotel",
+      "platform": "telegram",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "The meeting is at 3pm today",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Great job on the project!",
+      "platform": "telegram",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Can you send me the report by Friday?",
+      "platform": "email",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "I'll be there in 10 minutes",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Happy birthday! Hope you have a great day",
+      "platform": "telegram",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Let's schedule a call for next week",
+      "platform": "email",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "The PIN on the map marks the restaurant location",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Your reference number is REF-2024-001",
+      "platform": "email",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "See you at the Dialog showroom",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Score was 4500 points in the game",
+      "platform": "telegram",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "The class starts at room B204",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Invoice total is Rs. 15000",
+      "platform": "email",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "We need to change our approach to passwords in the...",
+      "platform": "email",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Good morning! How are you today?",
+      "platform": "telegram",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Dialog: Your data balance is 2.5GB. Dial #678# to ...",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Mobitel: Reload Rs.100 and get 1GB FREE! Valid til...",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "BOC: Your OTP is 482719. Do not share with anyone.",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Sampath Bank: Your verification code is 349821",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Bro send ur NIC number. Mine is 952345678V",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Passport: N12345678 for the visa application",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "CVV is 321",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Date of birth is 01-15-1990",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "My bank acc number is 0012345678901",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Password: admin123!",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Password: admin123!",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "OTP is 456789",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "OTP is 456789",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "My NIC is 901234567V",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "My NIC is 901234567V",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "SSN: 123-45-6789",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "SSN: 123-45-6789",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "HNB: OTP 291034 for your transaction. Do not share...",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Commercial Bank: Your one-time code is 583012",
+      "platform": "sms",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Keells: Your bill is Rs. 3450. Thank you for shopp...",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Uber: Your trip to Colombo Fort costs Rs. 890",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "PickMe: Driver Nimal is arriving in 3 minutes",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Lecture cancelled tomorrow. Check LMS for updates.",
+      "platform": "telegram",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Submit your assignment by Friday 5pm",
+      "platform": "email",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "The Wi-Fi is down again in the lab",
+      "platform": "telegram",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "I need to reset my password on the website",
+      "platform": "email",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Can you help me remember my PIN? I forgot it",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "The credit card machine is broken at the store",
+      "platform": "telegram",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "I changed my bank account details last week",
+      "platform": "email",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "What's your email? I'll send you the file",
+      "platform": "telegram",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "The OTP system is not working on the app",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "He told me his date of birth but I forgot it",
+      "platform": "telegram",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "The NIC office is closed on weekends",
+      "platform": "sms",
+      "expected": false,
+      "detected": false,
+      "correct": true,
+      "category_match": false,
+      "result_type": "TN"
+    },
+    {
+      "message": "Hey can you pay for the hotel? My card is 45320151...",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "For the bank transfer use account 98765432101234 a...",
+      "platform": "email",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    },
+    {
+      "message": "Just got the new NIC card, my number is 2001123456...",
+      "platform": "telegram",
+      "expected": true,
+      "detected": true,
+      "correct": true,
+      "category_match": true,
+      "result_type": "TP"
+    }
+  ]
+}

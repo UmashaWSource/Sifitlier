@@ -1,0 +1,66 @@
+{
+  "experiment": "Independent Validation",
+  "date": "2026-03-20T00:08:01.309574",
+  "dataset_size": 57,
+  "sensitive": 30,
+  "safe": 27,
+  "platform_distribution": {
+    "sms": 27,
+    "telegram": 15,
+    "email": 15
+  },
+  "confusion_matrix": {
+    "tp": 30,
+    "fp": 0,
+    "fn": 0,
+    "tn": 27
+  },
+  "traditional_metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "accuracy": 1.0
+  },
+  "msds_score": 1.0684,
+  "msds_components": {
+    "context_weight": 1.0,
+    "platform_factor": 1.0684,
+    "context_penalty": 0.0
+  },
+  "platform_metrics": {
+    "sms": {
+      "total": 27,
+      "tp": 14,
+      "tn": 13,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "accuracy": 1.0
+    },
+    "telegram": {
+      "total": 15,
+      "tp": 7,
+      "tn": 8,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "accuracy": 1.0
+    },
+    "email": {
+      "total": 15,
+      "tp": 9,
+      "tn": 6,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "accuracy": 1.0
+    }
+  },
+  "failures": []
+}

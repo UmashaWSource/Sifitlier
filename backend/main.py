@@ -406,20 +406,34 @@ async def check_dlp(
     # Perform DLP analysis
     result = dlp_detector.analyze(request.message)
     
-    # Create alert log
+    # Redact sensitive data before storing — never persist raw secrets
+    if result['has_sensitive_data']:
+        redacted_message = dlp_detector.redact_text(request.message)
+        # Also redact match details so raw values aren't in the DB
+        redacted_matches = []
+        for m in result['matches']:
+            redacted_matches.append({
+                **m,
+                'matched_text': m['masked_text'],  # Store masked, not raw
+            })
+    else:
+        redacted_message = request.message
+        redacted_matches = result['matches']
+
+    # Create alert log (with redacted content)
     alert = Alert(
         user_id=request.user_id,
         device_token=request.device_token,
         alert_type=AlertType.DLP.value,
         source=request.source.value,
         direction="outbound",
-        message_preview=request.message[:100] + ("..." if len(request.message) > 100 else ""),
-        full_message=request.message,
+        message_preview=redacted_message[:100] + ("..." if len(redacted_message) > 100 else ""),
+        full_message=redacted_message,
         recipient=request.recipient,
         has_sensitive_data=result['has_sensitive_data'],
         dlp_sensitivity_level=result['sensitivity_level'],
         dlp_categories=json.dumps(result['categories']),
-        dlp_matches=json.dumps(result['matches']),
+        dlp_matches=json.dumps(redacted_matches),
     )
     db.add(alert)
     db.commit()

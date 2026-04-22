@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:telephony/telephony.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'api_service.dart';
+import 'local_inference_service.dart';
 import 'notification_service.dart';
 
 // This function runs in background when SMS arrives
@@ -105,11 +105,9 @@ class SmsMonitorService {
     debugPrint("SMS monitoring stopped");
   }
 
-  /// Handle incoming SMS
+  /// Handle incoming SMS — uses LOCAL inference (works offline, no network needed)
   Future<void> _handleIncomingSms(SmsMessage message) async {
-    debugPrint("📱 SMS received from: ${message.address}");
-    debugPrint(
-        "   Body: ${message.body?.substring(0, message.body!.length > 50 ? 50 : message.body!.length)}...");
+    debugPrint("SMS received from: ${message.address}");
 
     // Notify UI that SMS was received
     onSmsReceived?.call(message);
@@ -120,9 +118,9 @@ class SmsMonitorService {
     }
 
     try {
-      // Send to backend for spam analysis
-      final result = await ApiService.checkSpam(
-        userId: 'device_user',
+      // Use local inference — no network required
+      final inference = LocalInferenceService();
+      final result = await inference.checkSpam(
         message: message.body!,
         source: 'sms',
         sender: message.address ?? 'Unknown',
@@ -135,7 +133,7 @@ class SmsMonitorService {
       if (result['is_spam'] == true) {
         // Show local notification
         await NotificationService().showSpamAlert(
-          title: '⚠️ Spam Detected!',
+          title: 'Spam Detected!',
           body: 'Suspicious SMS from ${message.address}',
           sender: message.address ?? 'Unknown',
           riskLevel: result['risk_level'] ?? 'medium',
@@ -144,8 +142,19 @@ class SmsMonitorService {
         // Notify UI
         onSpamDetected?.call(message, result);
       }
+
+      // Also check for sensitive data (DLP) locally
+      final dlpResult = inference.checkDLP(message: message.body!);
+      if (dlpResult['has_sensitive_data'] == true) {
+        await NotificationService().showDLPAlert(
+          title: 'Sensitive Data in SMS!',
+          body: 'Incoming SMS contains ${dlpResult['sensitivity_level']} sensitivity data',
+          sensitivityLevel: dlpResult['sensitivity_level'] ?? 'medium',
+          categories: List<String>.from(dlpResult['categories'] ?? []),
+        );
+      }
     } catch (e) {
-      debugPrint("❌ Error checking SMS for spam: $e");
+      debugPrint("Error checking SMS: $e");
       onError?.call("Error checking SMS: $e");
     }
   }
@@ -181,12 +190,14 @@ class SmsMonitorService {
     final messages = await getAllSms(limit: limit);
     final results = <Map<String, dynamic>>[];
 
+    final inference = LocalInferenceService();
+
     for (final message in messages) {
       if (message.body == null || message.body!.isEmpty) continue;
 
       try {
-        final result = await ApiService.checkSpam(
-          userId: 'device_user',
+        // Local inference — no network delay, no server needed
+        final result = await inference.checkSpam(
           message: message.body!,
           source: 'sms',
           sender: message.address ?? 'Unknown',
@@ -196,9 +207,6 @@ class SmsMonitorService {
           'message': message,
           'result': result,
         });
-
-        // Small delay to avoid overwhelming the server
-        await Future.delayed(const Duration(milliseconds: 100));
       } catch (e) {
         debugPrint("Error scanning SMS: $e");
       }

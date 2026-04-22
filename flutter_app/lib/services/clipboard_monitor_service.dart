@@ -1,13 +1,13 @@
 // lib/services/clipboard_monitor_service.dart
 // =============================================
-// REDESIGNED: Monitors outgoing messages for sensitive data
+// Monitors outgoing messages for sensitive data
 // Only triggers when user is composing/sending messages
 // NOT passive clipboard watching
 
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'api_service.dart';
+import 'local_inference_service.dart';
 import 'notification_service.dart';
 
 class ClipboardMonitorService {
@@ -81,25 +81,22 @@ class ClipboardMonitorService {
     }
   }
 
-  /// Check clipboard content for sensitive data
+  /// Check clipboard content for sensitive data — runs locally, no network
   Future<void> _checkForSensitiveData(String content) async {
     try {
-      final result = await ApiService.checkDLP(
-        userId: 'device_user',
-        message: content,
-        source: 'sms',
-      );
+      // Local DLP — instant, no network needed
+      final result = LocalInferenceService().checkDLP(message: content);
 
       if (result['has_sensitive_data'] == true) {
         final sensitivityLevel = result['sensitivity_level'] ?? 'medium';
         final categories = List<String>.from(result['categories'] ?? []);
 
-        debugPrint("⚠️ Sensitive data in clipboard: $categories");
+        debugPrint("Sensitive data in clipboard: $categories");
 
         // Only notify for high/critical
         if (sensitivityLevel == 'high' || sensitivityLevel == 'critical') {
           await NotificationService().showDLPAlert(
-            title: '🛡️ Sensitive Data Copied!',
+            title: 'Sensitive Data Copied!',
             body:
                 'Be careful where you paste this. Categories: ${categories.join(", ")}',
             sensitivityLevel: sensitivityLevel,
@@ -115,16 +112,12 @@ class ClipboardMonitorService {
     }
   }
 
-  /// Manually check any text for sensitive data (used by DLP check screen)
-  Future<Map<String, dynamic>?> checkText(String content) async {
+  /// Manually check any text for sensitive data — runs locally
+  Map<String, dynamic>? checkText(String content) {
     if (content.isEmpty) return null;
 
     try {
-      final result = await ApiService.checkDLP(
-        userId: 'device_user',
-        message: content,
-        source: 'sms',
-      );
+      final result = LocalInferenceService().checkDLP(message: content);
       return {
         'content': content,
         'result': result,

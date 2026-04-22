@@ -4,6 +4,7 @@
 // Logs user decisions (proceed/cancel)
 
 import 'package:flutter/material.dart';
+import '../services/local_inference_service.dart';
 import '../services/api_service.dart';
 
 class DLPCheckScreen extends StatefulWidget {
@@ -47,16 +48,12 @@ class _DLPCheckScreenState extends State<DLPCheckScreen> {
     });
 
     try {
-      final result = await ApiService.checkDLP(
-        userId: 'device_user',
+      // Local DLP — instant, no network needed
+      final result = LocalInferenceService().checkDLP(
         message: _messageController.text,
-        source: _selectedSource,
-        recipient: _recipientController.text.isNotEmpty
-            ? _recipientController.text
-            : null,
       );
 
-      if (!mounted) return; // ADD: Check mounted after await
+      if (!mounted) return;
 
       setState(() {
         _result = result;
@@ -391,17 +388,17 @@ class _DLPCheckScreenState extends State<DLPCheckScreen> {
       _decisionLog.insert(0, logEntry);
     });
 
-    // Log to backend via alert action
+    // Try to log to backend if available (non-blocking)
     if (_result != null && _result!['alert_id'] != null) {
       try {
         await ApiService.updateAlertAction(
           alertId: _result!['alert_id'],
-          userId: 'device_user',
+          userId: LocalInferenceService().userId,
           action: action == 'proceeded' ? 'allowed' : 'blocked',
         );
-        debugPrint("✅ Decision logged: $action");
       } catch (e) {
-        debugPrint("Error logging decision: $e");
+        // Backend unavailable — decision still logged locally
+        debugPrint("Backend unavailable for logging: $e");
       }
     }
   }

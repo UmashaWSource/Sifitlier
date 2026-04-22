@@ -34,7 +34,11 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import LinearSVC
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score,
     f1_score, classification_report, confusion_matrix
@@ -104,7 +108,7 @@ class TextPreprocessor:
         
         # Normalize whitespace
         text = re.sub(r'\s+', ' ', text).strip()
-        
+
         return text
     
     def preprocess_batch(self, texts: List[str]) -> List[str]:
@@ -143,48 +147,114 @@ class SpamClassifier:
             'low': 0.3
         }
     
-    def create_pipeline(self) -> Pipeline:
-        """Create the ML pipeline"""
+    def create_pipeline(self, model_type: str = 'logistic_regression') -> Pipeline:
+        """Create the ML pipeline
+
+        Args:
+            model_type: 'logistic_regression' (default, best balance),
+                        'naive_bayes' (original), or 'linear_svc'
+        """
+        tfidf = TfidfVectorizer(
+            max_features=8000,
+            ngram_range=(1, 3),
+            min_df=2,
+            max_df=0.95,
+            sublinear_tf=True
+        )
+
+        if model_type == 'naive_bayes':
+            classifier = MultinomialNB(alpha=0.1)
+        elif model_type == 'linear_svc':
+            # LinearSVC doesn't support predict_proba, so wrap it
+            classifier = CalibratedClassifierCV(LinearSVC(
+                C=1.0, max_iter=1000, class_weight='balanced'
+            ))
+        else:
+            # Default: Logistic Regression — better recall than NB
+            classifier = LogisticRegression(
+                C=1.0, max_iter=1000, class_weight='balanced'
+            )
+
         return Pipeline([
-            ('tfidf', TfidfVectorizer(
-                max_features=5000,
-                ngram_range=(1, 2),
-                min_df=2,
-                max_df=0.95,
-                sublinear_tf=True
-            )),
-            ('classifier', MultinomialNB(alpha=0.1))
+            ('tfidf', tfidf),
+            ('classifier', classifier)
         ])
     
-    def train(self, X: List[str], y: List[str], preprocess: bool = True) -> Dict[str, float]:
+    def train(self, X: List[str], y: List[str], preprocess: bool = True,
+              model_type: str = 'logistic_regression') -> Dict[str, float]:
         """
         Train the spam classifier.
-        
+
         Args:
             X: List of message texts
             y: List of labels ('spam' or 'ham')
             preprocess: Whether to preprocess texts
-            
+            model_type: 'logistic_regression', 'naive_bayes', or 'linear_svc'
+
         Returns:
             Dictionary with training metrics
         """
         # Preprocess if requested
         if preprocess:
             X = self.preprocessor.preprocess_batch(X)
-        
+
         # Create and train pipeline
-        self.pipeline = self.create_pipeline()
+        self.pipeline = self.create_pipeline(model_type)
         self.pipeline.fit(X, y)
         self.is_trained = True
-        
+
         # Calculate training metrics
         y_pred = self.pipeline.predict(X)
-        
+
         return {
             'accuracy': accuracy_score(y, y_pred),
             'precision': precision_score(y, y_pred, pos_label='spam'),
             'recall': recall_score(y, y_pred, pos_label='spam'),
             'f1': f1_score(y, y_pred, pos_label='spam')
+        }
+
+    def cross_validate(self, X: List[str], y: List[str], k: int = 5,
+                       preprocess: bool = True,
+                       model_type: str = 'logistic_regression') -> Dict[str, Any]:
+        """
+        Perform k-fold stratified cross-validation.
+
+        Args:
+            X: List of message texts
+            y: List of labels
+            k: Number of folds (default 5)
+            preprocess: Whether to preprocess texts
+            model_type: Model type to evaluate
+
+        Returns:
+            Dictionary with mean and std for each metric across folds
+        """
+        if preprocess:
+            X = self.preprocessor.preprocess_batch(X)
+
+        pipeline = self.create_pipeline(model_type)
+        cv = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
+
+        scoring = {
+            'accuracy': 'accuracy',
+            'precision': 'precision_weighted',
+            'recall': 'recall_weighted',
+            'f1': 'f1_weighted',
+        }
+
+        results = cross_validate(pipeline, X, y, cv=cv, scoring=scoring,
+                                 return_train_score=False)
+
+        return {
+            'folds': k,
+            'accuracy_mean': round(float(np.mean(results['test_accuracy'])), 4),
+            'accuracy_std': round(float(np.std(results['test_accuracy'])), 4),
+            'precision_mean': round(float(np.mean(results['test_precision'])), 4),
+            'precision_std': round(float(np.std(results['test_precision'])), 4),
+            'recall_mean': round(float(np.mean(results['test_recall'])), 4),
+            'recall_std': round(float(np.std(results['test_recall'])), 4),
+            'f1_mean': round(float(np.mean(results['test_f1'])), 4),
+            'f1_std': round(float(np.std(results['test_f1'])), 4),
         }
     
     def predict(self, text: str) -> Dict[str, Any]:
@@ -439,17 +509,47 @@ def print_confusion_matrix(cm, labels):
     print()
 
 
+def compare_models(data_path: str = 'spam.csv'):
+    """
+    Compare different classifiers side-by-side using cross-validation.
+    Useful for the FYP report's model selection section.
+    """
+    print("="*60)
+    print(" MODEL COMPARISON (5-Fold Cross-Validation)")
+    print("="*60)
+
+    df = load_dataset(data_path)
+    X = df['message'].tolist()
+    y = df['label'].tolist()
+
+    classifier = SpamClassifier()
+    models = ['naive_bayes', 'logistic_regression', 'linear_svc']
+
+    print(f"\n{'Model':<25} {'Accuracy':>10} {'Precision':>10} {'Recall':>10} {'F1':>10}")
+    print("-" * 68)
+
+    for model_type in models:
+        cv_results = classifier.cross_validate(X, y, k=5, model_type=model_type)
+        print(f"{model_type:<25} "
+              f"{cv_results['accuracy_mean']:>8.4f}  "
+              f"{cv_results['precision_mean']:>8.4f}  "
+              f"{cv_results['recall_mean']:>8.4f}  "
+              f"{cv_results['f1_mean']:>8.4f}")
+
+    print("="*60)
+
+
 def train_and_save_model(data_path: str = 'spam.csv', model_path: str = 'spam_classifier_pipeline.pkl'):
     """Main training function"""
-    
+
     print("="*60)
     print(" SIFITLIER - Spam Classifier Training")
     print("="*60)
-    
+
     # Load data
     print("\n>>> 1. Loading dataset...")
     df = load_dataset(data_path)
-    
+
     # Split data
     print("\n>>> 2. Splitting data...")
     X_train, X_test, y_train, y_test = train_test_split(
@@ -460,58 +560,71 @@ def train_and_save_model(data_path: str = 'spam.csv', model_path: str = 'spam_cl
         stratify=df['label']
     )
     print(f"   Training: {len(X_train)} | Test: {len(X_test)}")
-    
-    # Train model
-    print("\n>>> 3. Training model...")
+
+    # Cross-validation first
+    print("\n>>> 3. Cross-validation (5-fold)...")
     classifier = SpamClassifier()
-    train_metrics = classifier.train(X_train, y_train)
-    
+    cv_results = classifier.cross_validate(
+        df['message'].tolist(), df['label'].tolist(),
+        k=5, model_type='logistic_regression'
+    )
+    print(f"   CV Accuracy:  {cv_results['accuracy_mean']:.4f} (+/- {cv_results['accuracy_std']:.4f})")
+    print(f"   CV Precision: {cv_results['precision_mean']:.4f} (+/- {cv_results['precision_std']:.4f})")
+    print(f"   CV Recall:    {cv_results['recall_mean']:.4f} (+/- {cv_results['recall_std']:.4f})")
+    print(f"   CV F1 Score:  {cv_results['f1_mean']:.4f} (+/- {cv_results['f1_std']:.4f})")
+
+    # Train final model on train split
+    print("\n>>> 4. Training final model (Logistic Regression)...")
+    train_metrics = classifier.train(X_train, y_train, model_type='logistic_regression')
+
     print(f"\n   Training Metrics:")
-    print(f"   ├── Accuracy:  {train_metrics['accuracy']:.4f}")
-    print(f"   ├── Precision: {train_metrics['precision']:.4f}")
-    print(f"   ├── Recall:    {train_metrics['recall']:.4f}")
-    print(f"   └── F1 Score:  {train_metrics['f1']:.4f}")
-    
+    print(f"   |-- Accuracy:  {train_metrics['accuracy']:.4f}")
+    print(f"   |-- Precision: {train_metrics['precision']:.4f}")
+    print(f"   |-- Recall:    {train_metrics['recall']:.4f}")
+    print(f"   +-- F1 Score:  {train_metrics['f1']:.4f}")
+
     # Evaluate on test set
-    print("\n>>> 4. Evaluating on test set...")
+    print("\n>>> 5. Evaluating on test set...")
     test_metrics = classifier.evaluate(X_test, y_test)
-    
+
     print(f"\n   Test Metrics:")
-    print(f"   ├── Accuracy:  {test_metrics['accuracy']:.4f}")
-    print(f"   ├── Precision: {test_metrics['precision']:.4f}")
-    print(f"   ├── Recall:    {test_metrics['recall']:.4f}")
-    print(f"   └── F1 Score:  {test_metrics['f1']:.4f}")
-    
+    print(f"   |-- Accuracy:  {test_metrics['accuracy']:.4f}")
+    print(f"   |-- Precision: {test_metrics['precision']:.4f}")
+    print(f"   |-- Recall:    {test_metrics['recall']:.4f}")
+    print(f"   +-- F1 Score:  {test_metrics['f1']:.4f}")
+
     # Print confusion matrix
     print_confusion_matrix(test_metrics['confusion_matrix'], test_metrics['cm_labels'])
-    
+
     # Print full classification report
     print("   Classification Report:")
     print("   " + test_metrics['classification_report'].replace("\n", "\n   "))
-    
+
     # Save model
-    print(f"\n Saving model to {model_path}...")
+    print(f"\n>>> 6. Saving model to {model_path}...")
     classifier.save(model_path)
-    
+
     # Test predictions
-    print("\n Testing predictions...")
+    print("\n>>> 7. Sample predictions...")
     test_messages = [
         "Hey, want to grab lunch tomorrow?",
         "CONGRATULATIONS! You won $1,000,000!",
         "Meeting at 3pm in conference room",
         "URGENT: Verify your account NOW!",
+        "Dialog: Your data balance is 2.5GB. Dial #678#",
+        "You have been selected for a FREE iPhone! Click NOW!!!",
     ]
-    
+
     print("\n   Sample Predictions:")
     for msg in test_messages:
         result = classifier.predict(msg)
-        emoji = "🚨" if result['is_spam'] else "✅"
-        print(f"   {emoji} [{result['label'].upper():4s}] {result['spam_probability']*100:5.1f}% | {msg[:40]}...")
-    
+        tag = "SPAM" if result['is_spam'] else "SAFE"
+        print(f"   [{tag:4s}] {result['spam_probability']*100:5.1f}% | {msg[:50]}...")
+
     print("\n" + "="*60)
-    print("✅ Training Complete!")
+    print(" Training Complete!")
     print("="*60)
-    
+
     return classifier
 
 if __name__ == "__main__":

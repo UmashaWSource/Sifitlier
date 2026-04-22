@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/local_inference_service.dart';
 
 class LogsScreen extends StatefulWidget {
   const LogsScreen({super.key});
@@ -39,7 +40,7 @@ class _LogsScreenState extends State<LogsScreen>
     });
 
     try {
-      final logs = await ApiService.getAlerts(userId: 'default_user');
+      final logs = await ApiService.getAlerts(userId: LocalInferenceService().userId);
       setState(() {
         _allLogs = logs;
         _isLoading = false;

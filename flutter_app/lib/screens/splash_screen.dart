@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/local_inference_service.dart';
 import 'dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -24,26 +25,24 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initializeApp() async {
-    // Step 1: Show loading
+    // Step 1: Initialize local AI models
+    setState(() => _status = 'Loading AI models...');
+    await LocalInferenceService().initialize();
+
+    // Step 2: Check backend connection (non-blocking — app works without it)
     setState(() => _status = 'Checking server connection...');
+    final isConnected = await ApiService.healthCheck()
+        .timeout(const Duration(seconds: 3), onTimeout: () => false);
 
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Step 2: Check backend connection
-    final isConnected = await ApiService.healthCheck();
-
-    if (!isConnected) {
-      setState(() {
-        _status = 'Cannot connect to server.\nMake sure backend is running.';
-        _isError = true;
-      });
-      return;
+    if (isConnected) {
+      setState(() => _status = 'Connected! Loading app...');
+    } else {
+      setState(() => _status = 'Offline mode — AI running locally');
     }
 
-    setState(() => _status = 'Connected! Loading app...');
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 800));
 
-    // Step 3: Navigate to Dashboard
+    // Step 3: Navigate to Dashboard (always — works offline)
     if (mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const DashboardScreen()),

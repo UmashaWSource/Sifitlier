@@ -10,7 +10,7 @@ class ApiService {
   static const String baseUrl = 'http://10.0.2.2:8000';
 
   // For Physical Device (use your computer's IP):
-  // static const String baseUrl = 'http://172.18.48.1:8000';
+  // static const String baseUrl = 'http://172.20.10.6:8000';
 
 // For Production (update with actual backend URL):
   //static const String baseUrl = 'http://10.0.2.2:8000'; local host (version 2.0)
